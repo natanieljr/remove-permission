@@ -14,6 +14,7 @@ repositories {
 dependencies {
   // This dependency is supposed to come from mavenLocal(). See comment on "mavenLocal()" above.
   compile "org.droidmate:droidmate:dev"
+  compile 'com.thoughtworks.xstream:xstream:1.4.9'
   compile 'com.google.guava:guava:19.0'
   compile 'commons-io:commons-io:2.4'
   compile 'org.apache.commons:commons-lang3:3.3'
