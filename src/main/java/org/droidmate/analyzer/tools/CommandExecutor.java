@@ -102,7 +102,7 @@ class CommandExecutor
     logger.trace("Command:");
     logger.trace(commandLine);
 
-    Integer exitValue = null;
+    Integer exitValue;
     try
     {
       exitValue = executor.execute(command);

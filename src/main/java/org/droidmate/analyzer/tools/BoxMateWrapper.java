@@ -2,16 +2,16 @@ package org.droidmate.analyzer.tools;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
-import org.droidmate.analyzer.AppUnderTest;
 import org.droidmate.analyzer.Configuration;
 import org.droidmate.frontend.DroidmateFrontend;
+import org.gradle.tooling.BuildLauncher;
+import org.gradle.tooling.GradleConnector;
+import org.gradle.tooling.ProjectConnection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.nio.file.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -33,15 +33,9 @@ public class BoxMateWrapper
     this.cfg = cfg;
   }
 
-  private Path copyApkToWorkDir(AppUnderTest app, boolean inlined)
+  private Path copyApkToWorkDir(Path src)
   {
-    Path src, dst;
-    if (inlined)
-      src = app.getInlinedApkFile();
-    else
-      src = app.getApkFile();
-
-    dst = Paths.get(this.cfg.workDir.toString(), src.getFileName().toString());
+    Path dst = Paths.get(this.cfg.workDir.toString(), src.getFileName().toString());
 
     try
     {
@@ -55,26 +49,27 @@ public class BoxMateWrapper
     return dst;
   }
 
-  private int runBoxMate(String[] args)
+  private void runBoxMate(String[] args)
   {
     try
     {
-      int exitCode = DroidmateFrontend.main(args, null);
+      //int exitCode =
+      DroidmateFrontend.main(args, null);
       Thread.sleep(1000);
-      return exitCode;
+      //return exitCode;
     }
     catch (Exception e)
     {
       logger.error(e.getMessage(), e);
-      return 1;
+      //return 1;
     }
   }
 
-  private Path findInlinedFile(AppUnderTest app)
+  private Path findInlinedFile(Path apk)
   {
     Path dst = null;
 
-    String apkFileName = FilenameUtils.removeExtension(app.getApkFile().getFileName().toString());
+    String apkFileName = FilenameUtils.removeExtension(apk.getFileName().toString());
     try
     {
       Stream<Path> files = Files.list(this.cfg.workDir);
@@ -83,11 +78,7 @@ public class BoxMateWrapper
       assert inlinedFile.isPresent();
       assert Files.exists(inlinedFile.get());
 
-      dst = Paths.get(this.cfg.inlinedDir.toString(),
-        apkFileName + "-inlined.apk");
-
-      Files.deleteIfExists(dst);
-      Files.copy(inlinedFile.get(), dst);
+      dst = inlinedFile.get();
     }
     catch (IOException e)
     {
@@ -97,20 +88,17 @@ public class BoxMateWrapper
     return dst;
   }
 
-  public Path inlineApp(AppUnderTest app)
+  public Path inlineApp(Path apk, Path monitoredApis)
   {
-    String fileName = app.getApkFile().getFileName().toString();
+    this.recompileMonitor(monitoredApis);
+
+    String fileName = apk.getFileName().toString();
     logger.info(String.format("BoxMate inline: %s", fileName));
 
     try
     {
       FileUtils.cleanDirectory(this.cfg.workDir.toFile());
-      Path apkToInline = this.copyApkToWorkDir(app, false);
-
-      // Create new file content
-      //String configFileData = String.format(BOXMATE_ARGS_INLINE,
-      //  apkToInline.toAbsolutePath().parent.toString());
-      //this.createConfigFile(configFileData);
+      Path apkToInline = this.copyApkToWorkDir(apk);
 
       String[] args = new String[] {
         BoxMateConsts.ARGS_INLINE,
@@ -119,7 +107,7 @@ public class BoxMateWrapper
           apkToInline.toAbsolutePath().getParent().toString())};
       this.runBoxMate(args);
 
-      return this.findInlinedFile(app);
+      return this.findInlinedFile(apk);
     }
     catch (IOException e)
     {
@@ -127,37 +115,6 @@ public class BoxMateWrapper
     }
 
     return null;
-  }
-
-  private void copyExplOutputToDir(Path dst)
-  {
-    Path explDir = Paths.get(".", "output_device1");
-
-    try
-    {
-      if (Files.exists(dst))
-        FileUtils.cleanDirectory(dst.toFile());
-      Files.deleteIfExists(dst);
-
-      FileUtils.copyDirectory(explDir.toFile() , dst.toFile());
-
-      FileUtils.cleanDirectory(explDir.toFile());
-      Files.deleteIfExists(explDir);
-    }
-    catch (IOException e)
-    {
-      logger.error(e.getMessage(), e);
-    }
-  }
-
-  private Path getExplOutputDir(Scenario scenario)
-  {
-    String dstDirName = scenario.getCfgFile().getFileName().toString();
-    Path dst = Paths.get(this.cfg.explorationDir.toString(), dstDirName);
-
-    this.copyExplOutputToDir(dst);
-
-    return dst;
   }
 
   private void unpackSERFile(Path explDir)
@@ -173,19 +130,18 @@ public class BoxMateWrapper
     assert Files.exists(unpackedDir);
   }
 
-  public ExplorationResult explore(AppUnderTest app, Scenario scenario)
+  public ExplorationResult explore(Path apk, boolean isInitialExpl)
   {
-    String fileName = app.getInlinedApkFile().getFileName().toString();
-    boolean hasScenario = scenario.getRestrictedApi() != null;
-    if (hasScenario)
-      logger.info(String.format("BoxMate explore scenario: %s", scenario.getCfgFile().getFileName().toString()));
-    else
+    String fileName = apk.getFileName().toString();
+    if (isInitialExpl)
       logger.info(String.format("BoxMate explore: %s", fileName));
+    else
+      logger.info(String.format("BoxMate explore scenario: %s", apk.getFileName().toString()));
 
     try
     {
       FileUtils.cleanDirectory(this.cfg.workDir.toFile());
-      Path apkToExplore = this.copyApkToWorkDir(app, true);
+      Path apkToExplore = this.copyApkToWorkDir(apk);
 
       List<String> args = new ArrayList<>();
       args.add(ARGS_API23);
@@ -196,13 +152,9 @@ public class BoxMateWrapper
       args.add(String.format(ARGS_DIR,
           apkToExplore.toAbsolutePath().getParent().toString()));
 
-      if (hasScenario)
-        args.add(String.format(ARGS_XPRIVACY,
-          scenario.getCfgFile().toAbsolutePath().toString()));
-
       this.runBoxMate(args.stream().toArray(String[]::new));
 
-      Path explDir = this.getExplOutputDir(scenario);
+      Path explDir = Paths.get("output_device1");
       this.unpackSERFile(explDir);
       return new ExplorationResult(explDir);
     } catch (IOException e)
@@ -211,5 +163,85 @@ public class BoxMateWrapper
     }
 
     return null;
+  }
+
+  private void removeCompiledMonitorApkFiles(){
+    try
+    {
+      if (Files.exists(this.cfg.droidMateCompiledMonitor))
+        FileUtils.deleteDirectory(this.cfg.droidMateCompiledMonitor.toFile());
+    } catch (IOException e){
+      logger.error(e.getMessage(), e);
+    }
+  }
+
+  private void copyMonitorAPKToDestination(){
+    try
+    {
+      // Remove monitor
+      Files.deleteIfExists(this.cfg.droidMateMonitorAPK);
+      assert !Files.exists(this.cfg.droidMateMonitorAPK);
+      assert Files.exists(this.cfg.droidMateMonitorAPKTmp);
+
+      Files.copy(this.cfg.droidMateMonitorAPKTmp, this.cfg.droidMateMonitorAPK,
+              StandardCopyOption.REPLACE_EXISTING);
+
+
+      assert Files.exists(this.cfg.droidMateMonitorAPK);
+
+    }
+    catch (IOException e)
+    {
+      logger.error(e.getMessage(), e);
+    }
+  }
+
+  private void createMonitoredApisBackup(){
+    Path monitoredAPIs = this.cfg.droidMateMonitoredApis;
+    Path monitoredAPKBak = monitoredAPIs.resolveSibling(monitoredAPIs.getFileName() + ".bak");
+
+    if (!Files.exists(monitoredAPKBak)){
+      try{
+        Files.copy(monitoredAPIs, monitoredAPKBak, StandardCopyOption.REPLACE_EXISTING);
+      }
+      catch(IOException e){
+        logger.error(e.getMessage(), e);
+      }
+    }
+
+    assert Files.exists(monitoredAPKBak);
+  }
+
+  private void deployNewMonitoredApisFile(Path newFile){
+    try{
+      Files.deleteIfExists(this.cfg.droidMateMonitoredApis);
+
+      Files.copy(newFile, this.cfg.droidMateMonitoredApis, StandardCopyOption.REPLACE_EXISTING);
+    }
+    catch (IOException e){
+      logger.error(e.getMessage(), e);
+    }
+
+    assert Files.exists(this.cfg.droidMateMonitoredApis);
+  }
+
+  private void recompileMonitor(Path newMonitoredApisFile){
+    this.createMonitoredApisBackup();
+    this.removeCompiledMonitorApkFiles();
+    this.deployNewMonitoredApisFile(newMonitoredApisFile);
+
+    ProjectConnection connection = GradleConnector.newConnector()
+            .forProjectDirectory(this.cfg.droidMateGradleFileDir.toFile())
+            .connect();
+    try {
+      BuildLauncher build = connection.newBuild();
+      build.forTasks(":projects:monitor-generator:buildMonitorApk_api23");
+      build.setStandardOutput(System.out);
+      build.run();
+    } finally {
+      connection.close();
+    }
+
+    this.copyMonitorAPKToDestination();
   }
 }

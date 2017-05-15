@@ -13,6 +13,5 @@ class BoxMateConsts
   static final String ARGS_SEED     = "-randomSeed=0";
   static final String ARGS_SNAP     = "-getValidGuiSnapshotRetryAttempts=2";
   static final String ARGS_UNPACK   = "-unpack";
-  static final String ARGS_XPRIVACY = "-xPrivacyConfigurationFile=%s";
 
 }

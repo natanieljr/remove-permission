@@ -1,20 +1,20 @@
-android.app.ActivityManager->getRunningTasks(int)	<Restriction Id="%d" Name="system" Method="Srv_getTasks" Restricted="%s" Asked="false" />
-android.app.ActivityManager->getRecentTasks(int,int)	<Restriction Id="%d" Name="system" Method="Srv_getRecentTasks" Restricted="%s" Asked="false" />
-android.content.ContentResolver->query(android.net.Uri,java.lang.String[],java.lang.String,java.lang.String[],java.lang.String,android.os.CancellationSignal)	content://call_log/calls	<Restriction Id="%d" Name="calling" Method="CallLogProvider" Restricted="%s" Asked="false" />
-android.content.ContentResolver->query(android.net.Uri,java.lang.String[],java.lang.String,java.lang.String[],java.lang.String,android.os.CancellationSignal)	content://com.android.contacts/contacts	<Restriction Id="%d" Name="contacts" Method="contacts/contacts" Restricted="%s" Asked="false" />
-android.content.ContentResolver->query(android.net.Uri,java.lang.String[],java.lang.String,java.lang.String[],java.lang.String,android.os.CancellationSignal)	content://com.android.contacts/contacts/1/photo	<Restriction Id="%d" Name="contacts" Method="contacts/contacts" Restricted="%s" Asked="false" />
-android.content.ContentResolver->query(android.net.Uri,java.lang.String[],java.lang.String,java.lang.String[],java.lang.String,android.os.CancellationSignal)	content://com.android.contacts/data	<Restriction Id="%d" Name="contacts" Method="contacts/data" Restricted="%s" Asked="false" />
-android.content.ContentResolver->query(android.net.Uri,java.lang.String[],java.lang.String,java.lang.String[],java.lang.String,android.os.CancellationSignal)	content://com.android.contacts/data/postals	<Restriction Id="%d" Name="contacts" Method="contacts/data" Restricted="%s" Asked="false" />
-android.content.ContentResolver->query(android.net.Uri,java.lang.String[],java.lang.String,java.lang.String[],java.lang.String,android.os.CancellationSignal)	content://com.android.contacts/data/phones	<Restriction Id="%d" Name="contacts" Method="contacts/data" Restricted="%s" Asked="false" />
-android.content.ContentResolver->query(android.net.Uri,java.lang.String[],java.lang.String,java.lang.String[],java.lang.String,android.os.CancellationSignal)	content://com.android.contacts/profile	<Restriction Id="%d" Name="contacts" Method="contacts/profile" Restricted="%s" Asked="false" />
-android.content.ContentResolver->query(android.net.Uri,java.lang.String[],java.lang.String,java.lang.String[],java.lang.String,android.os.CancellationSignal)	content://com.android.contacts/profile/photo	<Restriction Id="%d" Name="contacts" Method="contacts/profile" Restricted="%s" Asked="false" />
-android.content.ContentResolver->query(android.net.Uri,java.lang.String[],java.lang.String,java.lang.String[],java.lang.String,android.os.CancellationSignal)	content://sms	<Restriction Id="%d" Name="messages" Method="SmsProvider" Restricted="%s" Asked="false" />
-android.hardware.Camera->open(int)	<Restriction Id="%d" Name="media" Method="Camera.permission" Restricted="%s" Asked="false" />
-android.location.LocationManager->getBestProvider(android.location.Criteria,boolean)	<Restriction Id="%d" Name="location" Method="Srv_getBestProvider" Restricted="%s" Asked="false" />
-android.location.LocationManager->getLastKnownLocation(java.lang.String)	<Restriction Id="%d" Name="location" Method="Srv_getLastLocation" Restricted="%s" Asked="false" />
-android.location.LocationManager->getProviders(boolean)	<Restriction Id="%d" Name="location" Method="Srv_getProviders" Restricted="%s" Asked="false" />
-android.location.LocationManager->isProviderEnabled(java.lang.String)	<Restriction Id="%d" Name="location" Method="Srv_isProviderEnabled" Restricted="%s" Asked="false" />
-android.telephony.TelephonyManager->getDeviceId()	<Restriction Id="%d" Name="phone" Method="Srv_getDeviceId5" Restricted="%s" Asked="false" />
-java.net.Socket->connect(java.net.SocketAddress,int)	<Restriction Id="%d" Name="internet" Method="inet" Restricted="%s" Asked="false" />
-java.net.URL->openConnection()	<Restriction Id="%d" Name="internet" Method="inet" Restricted="%s" Asked="false" />
-org.apache.http.impl.client.AbstractHttpClient->execute(org.apache.http.HttpHost,org.apache.http.HttpRequest,org.apache.http.protocol.HttpContext)	<Restriction Id="%d" Name="internet" Method="inet" Restricted="%s" Asked="false" />
+android.app.ActivityManager->getRunningTasks(int)
+android.app.ActivityManager->getRecentTasks(int,int)
+android.content.ContentResolver->query(android.net.Uri,java.lang.String[],java.lang.String,java.lang.String[],java.lang.String,android.os.CancellationSignal)	content://call_log/calls
+android.content.ContentResolver->query(android.net.Uri,java.lang.String[],java.lang.String,java.lang.String[],java.lang.String,android.os.CancellationSignal)	content://com.android.contacts/contacts
+android.content.ContentResolver->query(android.net.Uri,java.lang.String[],java.lang.String,java.lang.String[],java.lang.String,android.os.CancellationSignal)	content://com.android.contacts/contacts/1/photo
+android.content.ContentResolver->query(android.net.Uri,java.lang.String[],java.lang.String,java.lang.String[],java.lang.String,android.os.CancellationSignal)	content://com.android.contacts/data
+android.content.ContentResolver->query(android.net.Uri,java.lang.String[],java.lang.String,java.lang.String[],java.lang.String,android.os.CancellationSignal)	content://com.android.contacts/data/postals
+android.content.ContentResolver->query(android.net.Uri,java.lang.String[],java.lang.String,java.lang.String[],java.lang.String,android.os.CancellationSignal)	content://com.android.contacts/data/phones
+android.content.ContentResolver->query(android.net.Uri,java.lang.String[],java.lang.String,java.lang.String[],java.lang.String,android.os.CancellationSignal)	content://com.android.contacts/profile
+android.content.ContentResolver->query(android.net.Uri,java.lang.String[],java.lang.String,java.lang.String[],java.lang.String,android.os.CancellationSignal)	content://com.android.contacts/profile/photo
+android.content.ContentResolver->query(android.net.Uri,java.lang.String[],java.lang.String,java.lang.String[],java.lang.String,android.os.CancellationSignal)	content://sms
+android.hardware.Camera->open(int)
+android.location.LocationManager->getBestProvider(android.location.Criteria,boolean)
+android.location.LocationManager->getLastKnownLocation(java.lang.String)
+android.location.LocationManager->getProviders(boolean)
+android.location.LocationManager->isProviderEnabled(java.lang.String)
+android.telephony.TelephonyManager->getDeviceId()
+java.net.Socket->connect(java.net.SocketAddress,int)
+java.net.URL->openConnection()
+org.apache.http.impl.client.AbstractHttpClient->execute(org.apache.http.HttpHost,org.apache.http.HttpRequest,org.apache.http.protocol.HttpContext)

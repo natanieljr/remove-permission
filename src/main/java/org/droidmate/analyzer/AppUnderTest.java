@@ -2,6 +2,7 @@ package org.droidmate.analyzer;
 
 import net.dongliu.apk.parser.ApkFile;
 import net.dongliu.apk.parser.bean.ApkMeta;
+import org.apache.commons.io.FileUtils;
 import org.droidmate.analyzer.tools.BoxMateWrapper;
 import org.droidmate.analyzer.tools.DummyApkMeta;
 import org.droidmate.analyzer.tools.ExplorationResult;
@@ -30,10 +31,9 @@ public class AppUnderTest
   private BoxMateWrapper boxMate;
   private ApkFile        apk;
   private Path           apkFile;
-  private int            xPrivacyId;
-  private Path           inlinedApkFile;
   private List<Scenario> scenarios;
   private int            currExplDepth;
+  private Path           dir;
 
   AppUnderTest(Configuration cfg, Path path)
   {
@@ -42,6 +42,7 @@ public class AppUnderTest
     this.cfg = cfg;
     this.boxMate = new BoxMateWrapper(this.cfg);
     this.apkFile = path.toAbsolutePath();
+
     try
     {
       this.apk = new ApkFile(this.apkFile.toFile());
@@ -52,36 +53,28 @@ public class AppUnderTest
     }
 
     assert this.apk != null;
+    this.createExperimentDir();
   }
 
-  /*public ApkFile getApk()
-  {
-    return this.apk;
-  }*/
+  private void createExperimentDir(){
+    ApkMeta meta = this.getMeta();
+    String dirName = String.format("%s_%s", meta.getPackageName(), meta.getVersionName());
+    this.dir = Paths.get(this.cfg.dataDir.toString(), dirName);
+
+    try{
+      Files.createDirectories(this.dir);
+      FileUtils.cleanDirectory(this.dir.toFile());
+    }
+    catch (IOException e){
+      logger.error(e.getMessage(), e);
+    }
+
+    assert Files.exists(this.dir);
+  }
 
   public Path getApkFile()
   {
     return this.apkFile;
-  }
-
-  private void setInlinedApkFile(Path inlinedApkFile)
-  {
-    this.inlinedApkFile = inlinedApkFile;
-  }
-
-  public Path getInlinedApkFile()
-  {
-    return this.inlinedApkFile;
-  }
-
-  private void setXPrivacyId(int id)
-  {
-    this.xPrivacyId = id;
-  }
-
-  public int getXPrivacyId()
-  {
-    return this.xPrivacyId;
   }
 
   ApkMeta getMeta()
@@ -100,6 +93,10 @@ public class AppUnderTest
       return new DummyApkMeta();
 
     return apkMeta;
+  }
+
+  public Path getDir(){
+    return this.dir;
   }
 
   Scenario getInitialExpl()
@@ -149,59 +146,36 @@ public class AppUnderTest
     return this.getPendingScenarios().size() > 0;
   }
 
-  String getVersionName()
-  {
-    return this.getMeta().getVersionName();
-  }
-
   public String getPackageName()
   {
     return this.getMeta().getPackageName();
   }
 
-  private void inline()
+  private void inline(Scenario scenario)
   {
     // Inline app
-    //Path inlinedFile = boxMate.inlineApp(app);
-    Path inlinedFile = Paths.get("data", "inlined", "air.com.demute.TaoMix_v1.1.13-inlined.apk");
-    this.setInlinedApkFile(inlinedFile);
-    assert this.getInlinedApkFile() != null;
-  }
-
-  private void extractConfig()
-  {
-    // Extract configuration and XPrivacy id
-    ConfiguratorExtractor cfgExtr  = new ConfiguratorExtractor(this.cfg);
-    //int xPrivacyId = cfgExtr.extractConfiguration(apk);
-    int xPrivacyId = 9999;
-    this.setXPrivacyId(xPrivacyId);
-    assert this.getXPrivacyId() > 0;
+    Path inlinedFile = boxMate.inlineApp(this.getApkFile(), scenario.getCfgFile());
+    scenario.setInlinedApk(inlinedFile);
+    assert scenario.getInlinedApk() != null;
   }
 
   void explore(ExplorationStrategy strategy)
   {
-    this.extractConfig();
-    this.inline();
 
     // Initial expl
     List<Scenario> initialExpl = strategy.generateScenarios(this);
     this.addScenarios(initialExpl);
 
+    //this.inline();
+
     while (this.hasPendingScenarios())
     {
       for (Scenario scenario : this.getPendingScenarios())
       {
+        this.inline(scenario);
         ExplorationResult explRes;
 
-        if (this.getCurrExplDepth() == 0)
-        {
-          Path explDir = Paths.get("data", "exploration", "first-run", "air.com.demute.TaoMix_1.1.13");
-          explRes = new ExplorationResult(explDir);
-        }
-        else
-        {
-          explRes = boxMate.explore(this, scenario);
-        }
+        explRes = boxMate.explore(scenario.getInlinedApk(), scenario.getExplDepth() == 0);
         scenario.setResult(explRes);
         assert (scenario.getResult() != null) && (Files.exists(scenario.getResult().getExplDir()));
       }

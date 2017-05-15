@@ -1,6 +1,5 @@
 package org.droidmate.analyzer.tools;
 
-import org.droidmate.analyzer.AppUnderTest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -9,20 +8,39 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
 /**
  * Manages data read from resource files
  */
-public class ResourceManager
+class ResourceManager
 {
   private static final Logger logger = LoggerFactory.getLogger(ResourceManager.class);
-  private static HashMap<String, List<String>> apiMapping;
+  private static List<Api> restrictableApis;
+
+  private void processLine(String[] line){
+    String[] classAndMethodName = line[0].split("->");
+    String className = classAndMethodName[0];
+    String methodName = classAndMethodName[1];
+    String uri;
+
+    // No parameter
+    if (line.length == 2)
+      uri = "";
+    else
+      uri = line[1];
+
+    String params = Api.getParamsFromMethodSignature(methodName);
+
+    Api api = Api.build(className, methodName, params, uri);
+
+    ResourceManager.restrictableApis.add(api);
+  }
 
   private void initializeApiMapping()
   {
-    apiMapping = new HashMap<>();
+    ResourceManager.restrictableApis = new ArrayList<>();
+
     ClassLoader classLoader = ResourceManager.class.getClassLoader();
     try
     {
@@ -42,77 +60,37 @@ public class ResourceManager
         if ((data.length != 2) && (data.length != 3))
           continue;
 
-        String[] classAndMethodName = data[0].split("->");
-        String className = classAndMethodName[0];
-        String methodName = classAndMethodName[1];
-        String paramVal;
-
-        // No parameter
-        if (data.length == 2)
-          paramVal = "";
-        else
-          paramVal = data[1];
-
-        Api api = new Api(className, methodName, paramVal);
-
-        List<String> restrictions;
-        if (apiMapping.containsKey(api.toString()))
-          restrictions = apiMapping.get(api.toString());
-        else
-          restrictions = new ArrayList<>();
-
-        restrictions.add(data[data.length - 1]);
-        apiMapping.put(api.toString(), restrictions);
+        this.processLine(data);
       }
     } catch (Exception e)
     {
       logger.error(e.getMessage(), e);
     }
+
+    assert ResourceManager.restrictableApis.size() > 0;
   }
 
-  public List<String> getRestrictions(Api api)
+  boolean isPrivacySensitive(Api api)
   {
-    return apiMapping.get(api.toString());
-  }
-
-  public boolean isPrivacySensitive(Api api)
-  {
-    if (apiMapping== null)
+    if (ResourceManager.restrictableApis == null)
       this.initializeApiMapping();
 
-    return apiMapping.containsKey(api.toString());
+    return restrictableApis.contains(api);
   }
 
-  private List<String> getTemplate()
-  {
+  Path getDefaultMonitoredApisFile(){
     ClassLoader classLoader = getClass().getClassLoader();
     try
     {
-      URL resource = classLoader.getResource("xprivacy_config_template.xml");
+      URL resource = classLoader.getResource("monitored_apis.xml");
 
       if (resource != null)
-      {
-        Path templateFile = Paths.get(resource.toURI());
-        return Files.readAllLines(templateFile);
-      }
+          return Paths.get(resource.toURI());
     } catch (Exception e)
     {
       logger.error(e.getMessage(), e);
     }
 
     return null;
-  }
-
-  public List<String> getFormattedTemplate(AppUnderTest app)
-  {
-    List<String> data = this.getTemplate();
-
-    String apkId = Integer.toString(app.getXPrivacyId());
-    String packageName = app.getPackageName();
-
-    if (data != null)
-      data.replaceAll(s -> s.replace("**ID**", apkId).replace("**PACKAGE**", packageName));
-
-    return data;
   }
 }

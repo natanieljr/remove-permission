@@ -24,13 +24,13 @@ public class ExplorationResult
   private int       nrWidgetsExpl;
   private List<Api> apiList;
 
-  public ExplorationResult(Path explDir)
+  ExplorationResult(Path explDir)
   {
     logger.debug(String.format("Reading exploration results in %s", explDir.toString()));
     this.apiList = new ArrayList<>();
     this.explDir = explDir;
 
-    this.readStats();
+    this.tryReadStats();
     this.readSummary();
   }
 
@@ -49,38 +49,42 @@ public class ExplorationResult
     return Paths.get(this.explDir.toString(), "report");
   }
 
-  private void readStats()
+  private void readStatsFile(Path statsFile){
+    try
+    {
+      // First line is header
+      String[] lineData = Files.readAllLines(statsFile).get(1).trim().split("\t");
+
+      this.nrWidgetsObs = Integer.parseInt(lineData[5]);
+      this.nrWidgetsExpl = Integer.parseInt(lineData[6]);
+
+      this.crashed = !lineData[lineData.length - 1].equals("N/A (lack of DeviceException)");
+
+      // Extract exception
+      if (this.crashed)
+        this.exceptionText = lineData[lineData.length - 1];
+    }
+    catch (IOException e)
+    {
+      logger.error(e.getMessage(), e);
+    }
+  }
+
+  private void createErrorData(){
+    this.crashed = true;
+    this.nrWidgetsObs = 0;
+    this.nrWidgetsExpl = 0;
+    this.exceptionText = "Missing stats file";
+  }
+
+  private void tryReadStats()
   {
     Path statsFile = Paths.get(this.getReportFolder().toString(), "aggregate_stats.txt");
 
     if (!Files.exists(statsFile))
-    {
-      this.crashed = true;
-      this.nrWidgetsObs = 0;
-      this.nrWidgetsExpl = 0;
-      this.exceptionText = "Missing stats file";
-    }
+      this.createErrorData();
     else
-    {
-      try
-      {
-        // First line is header
-        String[] lineData = Files.readAllLines(statsFile).get(1).trim().split("\t");
-
-        this.nrWidgetsObs = Integer.parseInt(lineData[5]);
-        this.nrWidgetsExpl = Integer.parseInt(lineData[6]);
-
-        this.crashed = !lineData[lineData.length - 1].equals("N/A (lack of DeviceException)");
-
-        // Extract exception
-        if (this.crashed)
-          this.exceptionText = lineData[lineData.length - 1];
-      }
-      catch (IOException e)
-      {
-        logger.error(e.getMessage(), e);
-      }
-    }
+      this.readStatsFile(statsFile);
   }
 
   private void readSummary()
@@ -112,26 +116,30 @@ public class ExplorationResult
             line = lines.get(i).trim();
 
             String[] data = line.split(" ");
-            String methodName, className, paramVal;
+            String methodSignature, className, uri;
 
+            // Has Uri, must load
             if (data[data.length - 2].contains("uri:"))
             {
-              paramVal = data[data.length - 1];
-              methodName = data[data.length - 3];
+              uri = data[data.length - 1];
+              methodSignature = data[data.length - 3];
               className = data[data.length - 5];
             }
             else
             {
-              paramVal = "";
-              methodName = data[data.length - 1];
+              uri = "";
+              methodSignature = data[data.length - 1];
               className = data[data.length - 3];
             }
+
+            String params = Api.getParamsFromMethodSignature(methodSignature);
+            String methodName = Api.getMethodNameFromSignature(methodSignature);
 
             // remove : from method name
             className = className.replace(":", "");
 
             i += 1;
-            Api api = new Api(className, methodName, paramVal);
+            Api api = Api.build(className, methodName, params, uri);
             logger.debug(String.format("Identified API %s", api.toString()));
             this.apiList.add(api);
           }

@@ -3,27 +3,51 @@ version '0.1'
 
 apply plugin: 'java'
 
-//sourceCompatibility = 1.8
-
 repositories {
   mavenLocal()
   maven { url "https://jitpack.io" }
+  maven { url 'https://repo.gradle.org/gradle/libs-releases' }
   mavenCentral()
 }
 
 dependencies {
   // This dependency is supposed to come from mavenLocal(). See comment on "mavenLocal()" above.
   compile "org.droidmate:droidmate:dev"
+
+  compile "org.gradle:gradle-tooling-api:3.5"
+  // The tooling API need an SLF4J implementation available at runtime, replace this with any other implementation
+  //runtime 'org.slf4j:slf4j-simple:1.7.10'
+
   compile 'com.thoughtworks.xstream:xstream:1.4.9'
   compile 'com.google.guava:guava:19.0'
   compile 'commons-io:commons-io:2.4'
   compile 'org.apache.commons:commons-lang3:3.3'
   compile 'org.apache.commons:commons-exec:1.2'
-  compile 'org.slf4j:slf4j-api:1.7.6'
   compile 'org.codehaus.groovy:groovy-all:2.4.6'
   compile 'ch.qos.logback:logback-classic:1.0.13'
   compile 'ch.qos.logback:logback-core:1.0.13'
   compile 'net.dongliu:apk-parser:2.2.0'
 
   testCompile group: 'junit', name: 'junit', version: '4.11'
+}
+
+
+task droidmateBuild(type: GradleBuild) {
+  group = "build"
+
+  buildFile = file "~/Documents/saarland/repositories/droidmate/dev/droidmate/build.gradle"
+  tasks = ["clean", "build", "install"]
+}
+
+
+
+task droidmateUsageExamplesBuild(type: GradleBuild) {
+  group = "build"
+
+  buildFile = file "dev/droidmate_usage_examples/build.gradle"
+  tasks = ["clean", "build"]
+}
+
+task integrationBuild(dependsOn: ["droidmateBuild", "droidmateUsageExamplesBuild"]) {
+  group = "build"
 }

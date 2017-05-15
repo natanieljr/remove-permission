@@ -1,6 +1,7 @@
 package org.droidmate.analyzer;
 
 import org.apache.commons.io.FileUtils;
+import org.droidmate.apis.ApiPolicy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,19 +27,8 @@ class AppAnalyzer
     try
     {
       if (!Files.exists(this.cfg.workDir))
-        Files.createDirectory(this.cfg.workDir);
+        Files.createDirectories(this.cfg.workDir);
 
-      if (!Files.exists(this.cfg.inlinedDir))
-        Files.createDirectory(this.cfg.inlinedDir);
-
-      if (!Files.exists(this.cfg.configDir))
-        Files.createDirectory(this.cfg.configDir);
-
-      if (!Files.exists(this.cfg.origConfigDir))
-        Files.createDirectory(this.cfg.origConfigDir);
-
-      if (!Files.exists(this.cfg.explorationDir))
-        Files.createDirectory(this.cfg.explorationDir);
 
       FileUtils.cleanDirectory(this.cfg.workDir.toFile());
     }
@@ -50,9 +40,9 @@ class AppAnalyzer
 
   void analyze(AppUnderTest app)
   {
-    //this.initialize();
+    this.initialize();
 
-    ExplorationStrategy strategy = new ExplorationStrategy(this.cfg);
+    ExplorationStrategy strategy = new ExplorationStrategy(ApiPolicy.Deny);
     app.explore(strategy);
   }
 }
