@@ -14,6 +14,9 @@ gradle
 # Project output dir
 data
 
+# APKs
+apks
+
 # BoxMate dir
 temp_extracted_resources
 output_device1
