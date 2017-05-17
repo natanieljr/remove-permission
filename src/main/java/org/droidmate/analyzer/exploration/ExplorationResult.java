@@ -19,7 +19,6 @@ public class ExplorationResult {
 
     private Path explDir;
     private boolean crashed;
-    private String exceptionText;
     private int nrWidgetsObs;
     private int nrWidgetsExpl;
     private List<Api> apiList;
@@ -37,7 +36,7 @@ public class ExplorationResult {
         return this.explDir;
     }
 
-    public boolean isCrashed() {
+    public boolean hasCrashed() {
         return this.crashed;
     }
 
@@ -54,10 +53,6 @@ public class ExplorationResult {
             this.nrWidgetsExpl = Integer.parseInt(lineData[6]);
 
             this.crashed = !lineData[lineData.length - 1].equals("N/A (lack of DeviceException)");
-
-            // Extract exception
-            if (this.crashed)
-                this.exceptionText = lineData[lineData.length - 1];
         } catch (IOException e) {
             logger.error(e.getMessage(), e);
         }
@@ -67,7 +62,6 @@ public class ExplorationResult {
         this.crashed = true;
         this.nrWidgetsObs = 0;
         this.nrWidgetsExpl = 0;
-        this.exceptionText = "Missing stats file";
     }
 
     private void tryReadStats() {
@@ -79,11 +73,17 @@ public class ExplorationResult {
             this.readStatsFile(statsFile);
     }
 
+    List<Api> getApiList(){
+        return this.apiList;
+    }
+
     private void readSummary() {
         Path summaryFile = Paths.get(this.getReportFolder().toString(), "summary.txt");
 
-        if (!Files.exists(summaryFile))
+        if (!Files.exists(summaryFile)) {
+            this.createErrorData();
             return;
+        }
 
         try {
             List<String> lines = Files.readAllLines(summaryFile);
@@ -135,7 +135,7 @@ public class ExplorationResult {
         }
     }
 
-    List<Api> getApiList() {
-        return this.apiList;
+    private double getSize(){
+        return Math.sqrt(Math.pow(this.nrWidgetsExpl, 2) + Math.pow(this.nrWidgetsObs, 2));
     }
 }

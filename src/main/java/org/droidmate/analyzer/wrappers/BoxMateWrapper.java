@@ -130,7 +130,7 @@ public class BoxMateWrapper {
             args.add(String.format(BoxMateConsts.ARGS_DIR,
                     apkToExplore.toAbsolutePath().getParent().toString()));
 
-            this.runBoxMate(args.stream().toArray(String[]::new));
+            this.runBoxMate(args.toArray(new String[0]));
 
             Path explDir = Paths.get("output_device1");
             this.unpackSERFile(explDir);

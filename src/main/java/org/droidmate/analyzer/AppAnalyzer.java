@@ -2,6 +2,8 @@ package org.droidmate.analyzer;
 
 import org.apache.commons.io.FileUtils;
 import org.droidmate.analyzer.exploration.ExplorationStrategy;
+import org.droidmate.analyzer.exploration.IExplorationStrategy;
+import org.droidmate.analyzer.evaluation.IScenarioEvaluationStrategy;
 import org.droidmate.apis.ApiPolicy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,10 +35,10 @@ class AppAnalyzer {
         }
     }
 
-    void analyze(AppUnderTest app) {
+    void analyze(AppUnderTest app, IScenarioEvaluationStrategy evaluator) {
         this.initialize();
 
-        ExplorationStrategy strategy = new ExplorationStrategy(ApiPolicy.Deny);
+        IExplorationStrategy strategy = new ExplorationStrategy(ApiPolicy.Deny, evaluator);
         app.explore(strategy);
     }
 }

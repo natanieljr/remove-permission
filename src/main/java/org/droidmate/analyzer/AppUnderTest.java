@@ -5,7 +5,7 @@ import net.dongliu.apk.parser.bean.ApkMeta;
 import org.apache.commons.io.FileUtils;
 import org.droidmate.analyzer.api.DummyApkMeta;
 import org.droidmate.analyzer.exploration.ExplorationResult;
-import org.droidmate.analyzer.exploration.ExplorationStrategy;
+import org.droidmate.analyzer.exploration.IExplorationStrategy;
 import org.droidmate.analyzer.exploration.Scenario;
 import org.droidmate.analyzer.wrappers.BoxMateWrapper;
 import org.slf4j.Logger;
@@ -135,7 +135,7 @@ public class AppUnderTest {
         assert scenario.getInlinedApk() != null;
     }
 
-    void explore(ExplorationStrategy strategy) {
+    void explore(IExplorationStrategy strategy) {
         // Initial expl
         List<Scenario> initialExpl = strategy.generateScenarios(this);
         this.addScenarios(initialExpl);

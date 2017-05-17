@@ -47,6 +47,6 @@ class BatchProcessor {
         this.initializeApkList();
 
         AppUnderTest apk = this.apps.get(0);
-        this.analyzer.analyze(apk);
+        this.analyzer.analyze(apk, cfg.evaluationStrategy);
     }
 }

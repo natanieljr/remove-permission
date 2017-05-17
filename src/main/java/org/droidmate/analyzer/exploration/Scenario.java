@@ -8,6 +8,7 @@ import org.apache.commons.io.FileUtils;
 import org.droidmate.analyzer.AppUnderTest;
 import org.droidmate.analyzer.ResourceManager;
 import org.droidmate.analyzer.api.Api;
+import org.droidmate.analyzer.evaluation.IScenarioEvaluationStrategy;
 import org.droidmate.apis.ApiPolicy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,6 +37,36 @@ public class Scenario {
     private Path inlinedApk;
     private AppUnderTest app;
     private ApiPolicy policy;
+    private IScenarioEvaluationStrategy evaluator;
+
+    private Scenario(AppUnderTest app, List<Api> restrictedApis, int explDepth, ApiPolicy policy,
+                     IScenarioEvaluationStrategy evaluator) {
+        this.app = app;
+        this.restrictedApis = restrictedApis;
+        this.explDepth = explDepth;
+        this.policy = policy;
+        this.evaluator = evaluator;
+
+        this.createDir();
+        Path cfgFile = this.createCfgFile(restrictedApis);
+        this.setCfgFile(cfgFile);
+    }
+
+    static Scenario build(AppUnderTest app, List<Api> restrictedApis, int explDepth, ApiPolicy policy,
+                          IScenarioEvaluationStrategy evaluator) {
+        if (restrictedApis == null)
+            restrictedApis = new ArrayList<>();
+
+        return new Scenario(app, restrictedApis, explDepth, policy, evaluator);
+    }
+
+    static Scenario merge(Scenario s1, Scenario s2, int explDepth) {
+        List<Api> restrictedApis = new ArrayList<>();
+        restrictedApis.addAll(s1.restrictedApis);
+        restrictedApis.addAll(s2.restrictedApis);
+
+        return Scenario.build(s1.app, restrictedApis, explDepth, s1.policy, s1.evaluator);
+    }
 
     private void applyRestriction(JsonObject api, Api restriction) {
         if (restriction.getURI().length() > 0) {
@@ -98,24 +129,6 @@ public class Scenario {
         return null;
     }
 
-    static Scenario build(AppUnderTest app, List<Api> restrictedApis, int explDepth, ApiPolicy policy) {
-        if (restrictedApis == null)
-            restrictedApis = new ArrayList<>();
-
-        return new Scenario(app, restrictedApis, explDepth, policy);
-    }
-
-    private Scenario(AppUnderTest app, List<Api> restrictedApis, int explDepth, ApiPolicy policy) {
-        this.app = app;
-        this.restrictedApis = restrictedApis;
-        this.explDepth = explDepth;
-        this.policy = policy;
-
-        this.createDir();
-        Path cfgFile = this.createCfgFile(restrictedApis);
-        this.setCfgFile(cfgFile);
-    }
-
     private void createDir() {
         try {
             String prefix = String.format("%d_", this.explDepth);
@@ -129,31 +142,17 @@ public class Scenario {
         assert Files.exists(this.dir);
     }
 
-    private void setCfgFile(Path cfgFile) {
-        if (cfgFile.getParent().equals(this.getDir()))
-            this.cfgFile = cfgFile;
-        else {
-
-            String fileName = cfgFile.getFileName().toString();
-            this.cfgFile = Paths.get(this.getDir().toString(), fileName);
-
-            try {
-                Files.copy(cfgFile, this.cfgFile, StandardCopyOption.REPLACE_EXISTING);
-            } catch (IOException e) {
-                logger.error(e.getMessage(), e);
-            }
-        }
-
-        assert this.cfgFile != null;
-        assert Files.exists(this.cfgFile);
-    }
-
     private Path getDir() {
         return this.dir;
     }
 
     public ExplorationResult getResult() {
         return this.result;
+    }
+
+    public void setResult(ExplorationResult result) {
+        Path newResDir = this.copyExplOutputToDir(result);
+        this.result = new ExplorationResult(newResDir);
     }
 
     private Path copyExplOutputToDir(ExplorationResult res) {
@@ -177,17 +176,31 @@ public class Scenario {
         return dst;
     }
 
-    public void setResult(ExplorationResult result) {
-        Path newResDir = this.copyExplOutputToDir(result);
-        this.result = new ExplorationResult(newResDir);
-    }
-
     public int getExplDepth() {
         return this.explDepth;
     }
 
     public Path getCfgFile() {
         return this.cfgFile;
+    }
+
+    private void setCfgFile(Path cfgFile) {
+        if (cfgFile.getParent().equals(this.getDir()))
+            this.cfgFile = cfgFile;
+        else {
+
+            String fileName = cfgFile.getFileName().toString();
+            this.cfgFile = Paths.get(this.getDir().toString(), fileName);
+
+            try {
+                Files.copy(cfgFile, this.cfgFile, StandardCopyOption.REPLACE_EXISTING);
+            } catch (IOException e) {
+                logger.error(e.getMessage(), e);
+            }
+        }
+
+        assert this.cfgFile != null;
+        assert Files.exists(this.cfgFile);
     }
 
     public Path getInlinedApk() {
@@ -207,7 +220,23 @@ public class Scenario {
         assert Files.exists(this.inlinedApk);
     }
 
-    public List<Api> getRestrictedApis(){
-        return this.restrictedApis;
+    @Override
+    public boolean equals(Object other) {
+        return other instanceof Scenario && this.restrictedApis.equals(((Scenario) other).restrictedApis);
+    }
+
+    public boolean hasCrashed(){
+        return (this.result != null) && this.result.hasCrashed();
+    }
+
+    public double getSize(){
+        if (this.result != null)
+            return this.getSize();
+
+        return 0.0;
+    }
+
+    boolean isValid() {
+        return this.evaluator.valid(this);
     }
 }
