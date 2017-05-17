@@ -65,7 +65,10 @@ public class ExplorationStrategy implements IExplorationStrategy{
         for(Scenario s1 : lastScenarios)
             for(Scenario s2 : lastScenarios)
                 if (!s1.equals(s2)){
-                    scenarios.add(Scenario.merge(s1, s2, app.getCurrExplDepth()));
+                    Scenario newScenario = Scenario.merge(s1, s2, app.getCurrExplDepth());
+
+                    if (!lastScenarios.contains(newScenario))
+                        scenarios.add(newScenario);
                 }
 
         return scenarios;
