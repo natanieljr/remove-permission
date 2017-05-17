@@ -17,7 +17,7 @@ import java.util.stream.Stream;
 class ExplorationStrategy
 {
   private static final Logger logger = LoggerFactory.getLogger(ExplorationStrategy.class);
-  private ApiPolicy     policy;
+  private ApiPolicy    policy;
 
   ExplorationStrategy(ApiPolicy policy){
     this.policy = policy;
@@ -31,9 +31,8 @@ class ExplorationStrategy
 
     // filter privacy sensitive APIs
     Stream<Api> apiStream = app.getInitialExpl().getResult()
-            .getApiList().stream().filter(Api::isPrivacySensitive);
+            .getApiList().stream().filter(Api::hasRestriction);
 
-    // workaround, local vairables have to be final, instance's not
     apiStream.forEachOrdered(api ->
     {
       Scenario scenario = Scenario.build(app, Collections.singletonList(api), app.getCurrExplDepth(), this.policy);

@@ -17,6 +17,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -101,13 +102,11 @@ public class AppUnderTest
 
   Scenario getInitialExpl()
   {
-    Stream<Scenario> scenarioStream = this.scenarios.stream()
-      .filter(p -> p.getExplDepth() == 0);
+    Optional<Scenario> scenarioStream = this.scenarios.stream()
+      .filter(p -> p.getExplDepth() == 0)
+      .findFirst();
 
-    if (scenarioStream.findFirst().isPresent())
-      return scenarioStream.findFirst().get();
-
-    return null;
+    return scenarioStream.orElse(null);
   }
 
   int getCurrExplDepth()
@@ -120,13 +119,7 @@ public class AppUnderTest
     return this.scenarios;
   }
 
-  public void addScenario(Scenario expl)
-  {
-    assert expl != null;
-    this.scenarios.add(expl);
-  }
-
-  public void addScenarios(Collection<Scenario> expl)
+  private void addScenarios(Collection<Scenario> expl)
   {
     assert (expl != null);
 
@@ -161,12 +154,9 @@ public class AppUnderTest
 
   void explore(ExplorationStrategy strategy)
   {
-
     // Initial expl
     List<Scenario> initialExpl = strategy.generateScenarios(this);
     this.addScenarios(initialExpl);
-
-    //this.inline();
 
     while (this.hasPendingScenarios())
     {

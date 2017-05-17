@@ -1,18 +1,15 @@
 package org.droidmate.analyzer.tools;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import org.apache.commons.io.FileUtils;
 import org.droidmate.analyzer.AppUnderTest;
 import org.droidmate.apis.ApiPolicy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -22,6 +19,8 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+
+import static java.nio.file.Files.readAllLines;
 
 /**
  * Scenario (to be) explored
@@ -39,7 +38,36 @@ public class Scenario
   private AppUnderTest      app;
   private ApiPolicy         policy;
 
-  private static Path createCfgFile(List<Api> restrictedApis){
+  private void applyRestriction(JsonObject api, Api restriction){
+    if (restriction.getURI().length() > 0) {
+      // Currently the URIs are called "uri", so no fancy logic was developed
+      String newRestriction = String.format("%s.toString().equals(\"%s\")",
+              restriction.getURIParamName(), restriction.getURI());
+
+      String currRestriction = api.get("customPolicyConstraint").getAsString();
+
+      // is already restricted, add extra condition
+      if (currRestriction.length() > 0)
+        currRestriction = String.format("(%s) && (%s)", currRestriction, newRestriction);
+      else
+        currRestriction = newRestriction;
+
+      api.remove("customPolicyConstraint");
+      api.addProperty("customPolicyConstraint", currRestriction);
+    }
+
+    api.remove("policy");
+    api.addProperty("policy", this.policy.toString());
+  }
+
+  private Path writeNewMonitoredApisFile(JsonObject jsonApiList) throws IOException{
+    Path newFile = Paths.get(this.getDir().toString(), "monitored_apis.json");
+    Files.write(newFile, jsonApiList.toString().getBytes());
+
+    return newFile;
+  }
+
+  private Path createCfgFile(List<Api> restrictedApis){
 
     Path defaultFile = new ResourceManager().getDefaultMonitoredApisFile();
 
@@ -47,61 +75,25 @@ public class Scenario
     if (restrictedApis.size() == 0)
       return defaultFile;
 
-    DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
-    try
-    {
-      byte[] fileData = Files.readAllBytes(defaultFile);
+    try {
+      String fileData = String.join("\n", Files.readAllLines(defaultFile));
+      JsonObject jsonApiList = new JsonParser().parse(fileData).getAsJsonObject();
 
-      DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
-      Document doc = dBuilder.parse(new ByteArrayInputStream(fileData));
+      JsonElement apis = jsonApiList.get("apis");
 
-      //optional, but recommended
-      //read this - http://stackoverflow.com/questions/13786607/normalization-in-dom-parsing-with-java-how-does-it-work
-      doc.getDocumentElement().normalize();
+      ((JsonArray) apis).forEach(item ->
+      {
+        Api api = Api.build((JsonObject) item);
 
-      NodeList nPolicies = doc.getElementsByTagName("apiPolicy");
-
-      for (int x = 0; x < nPolicies.getLength(); x++) {
-        Node nPolicy = nPolicies.item(x);
-        Node nApi = nPolicy.getChildNodes().item(1);
-
-        Element eApi = (Element) nApi;
-
-
-
-        //String versionRestriction = eApi.getElementsByTagName("version").item(0).getTextContent();
-
-        // If API should be ignored on Andorid 23, skip it
-        /*if ((res.androidApi == AndroidAPI.API_23) && (versionRestriction.startsWith("!API23")))
-          continue
-
-                  // Components from the API tag
-          String objectClass = eApi.getElementsByTagName("class").item(0).getTextContent()
-        String methodName = eApi.getElementsByTagName("method").item(0).getTextContent()
-        String returnClass = eApi.getElementsByTagName("return").item(0).getTextContent()
-        boolean isStatic = eApi.getElementsByTagName("static").item(0).getTextContent().equalsIgnoreCase("True")
-        List<String> params = new ArrayList<>()
-
-        Element eParams = (Element) eApi.getElementsByTagName("params").item(0)
-        for (Node nParam : eParams.getElementsByTagName("param")) {
-          params.add(nParam.getTextContent())
+        // Check if APi is being restricted
+        if ((restrictedApis.contains(api)) && (api.hasRestriction())){
+          this.applyRestriction((JsonObject) item, api.getRestriction());
         }
+      });
 
-        // Componenets from the Policy tag
-        Element ePolicy = (Element) nPolicy;
-        String policy = ePolicy.getElementsByTagName("policy").item(0).getTextContent()
-        String hook = ePolicy.getElementsByTagName("hook").item(0).getTextContent()
-        String name = ePolicy.getElementsByTagName("name").item(0).getTextContent()
-        String logId = ePolicy.getElementsByTagName("logId").item(0).getTextContent()
-        String invokeCode = ePolicy.getElementsByTagName("invoke").item(0).getTextContent()
-        String defaultValue = ePolicy.getElementsByTagName("defaultValue").item(0).getTextContent()
-
-        ApiMethodSignature api = ApiMethodSignature.fromDescriptor(objectClass, returnClass, methodName, params, isStatic,
-                policy, hook, name, logId, invokeCode, defaultValue);
-        apiList.add(api);*/
-      }
+      return this.writeNewMonitoredApisFile(jsonApiList);
     }
-    catch (Exception e){
+    catch (IOException e){
       logger.error(e.getMessage(), e);
     }
 
@@ -112,12 +104,10 @@ public class Scenario
     if (restrictedApis == null)
       restrictedApis = new ArrayList<>();
 
-    Path cfgFile = Scenario.createCfgFile(restrictedApis);
-
-    return new Scenario(app, restrictedApis, explDepth, cfgFile, policy);
+    return new Scenario(app, restrictedApis, explDepth, policy);
   }
 
-  private Scenario(AppUnderTest app, List<Api> restrictedApis, int explDepth, Path cfgFile, ApiPolicy policy)
+  private Scenario(AppUnderTest app, List<Api> restrictedApis, int explDepth, ApiPolicy policy)
   {
     this.app = app;
     this.restrictedApis = restrictedApis;
@@ -125,49 +115,50 @@ public class Scenario
     this.policy = policy;
 
     this.createDir();
+    Path cfgFile = this.createCfgFile(restrictedApis);
     this.setCfgFile(cfgFile);
   }
 
   private void createDir(){
-    String timeStamp = new SimpleDateFormat("yyyy_MM_dd_HH_mm_ss").format(new Date());
-    this.dir = Paths.get(this.app.getDir().toString(), timeStamp);
-
     try{
-      Files.createDirectories(dir);
+      String prefix = String.format("%d_", this.explDepth);
+
+      this.dir = Files.createTempDirectory(this.app.getDir(), prefix);
     }
     catch(IOException e){
       logger.error(e.getMessage(), e);
     }
 
+    assert this.dir != null;
     assert Files.exists(this.dir);
   }
 
   private void setCfgFile(Path cfgFile){
-    String fileName = cfgFile.getFileName().toString();
-    this.cfgFile = Paths.get(this.getDir().toString(), fileName);
+    if (cfgFile.getParent().equals(this.getDir()))
+      this.cfgFile = cfgFile;
+    else {
 
-    try{
-      Files.copy(cfgFile, this.cfgFile, StandardCopyOption.REPLACE_EXISTING);
-    }
-    catch(IOException e){
-      logger.error(e.getMessage(), e);
+      String fileName = cfgFile.getFileName().toString();
+      this.cfgFile = Paths.get(this.getDir().toString(), fileName);
+
+      try {
+        Files.copy(cfgFile, this.cfgFile, StandardCopyOption.REPLACE_EXISTING);
+      } catch (IOException e) {
+        logger.error(e.getMessage(), e);
+      }
     }
 
+    assert this.cfgFile != null;
     assert Files.exists(this.cfgFile);
   }
 
-  public Path getDir(){
+  private Path getDir(){
     return this.dir;
   }
 
   public ExplorationResult getResult()
   {
     return this.result;
-  }
-
-  List<Api> getRestrictedApis()
-  {
-    return this.restrictedApis;
   }
 
   private Path copyExplOutputToDir(ExplorationResult res)
@@ -199,10 +190,6 @@ public class Scenario
   {
     Path newResDir = this.copyExplOutputToDir(result);
     this.result = new ExplorationResult(newResDir);
-  }
-
-  public ApiPolicy getPolicy(){
-    return this.policy;
   }
 
   public int getExplDepth()

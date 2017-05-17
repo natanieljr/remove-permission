@@ -1,5 +1,7 @@
 package org.droidmate.analyzer.tools;
 
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,7 +20,16 @@ public class Api
   private String methodName;
   private List<String> params;
   private String uri;
-  private int    count;
+
+  static Api build(JsonObject jsonObject){
+    String className = jsonObject.get("className").getAsString();
+    String methodName = jsonObject.get("methodName").getAsString();
+    List<String> paramList = new ArrayList<>();
+    for (JsonElement param : jsonObject.get("paramList").getAsJsonArray())
+      paramList.add(param.getAsString());
+
+    return Api.build(className, methodName, paramList, "");
+  }
 
   static Api build(String className, String methodName, String paramStr, String uri){
     List<String> paramList = new ArrayList<>();
@@ -67,47 +78,33 @@ public class Api
 
     if (this.params == null)
       this.params = new ArrayList<>();
-
-    this.count = 1;
   }
 
-  public void setCount(int count)
-  {
-    assert count >= 1;
-
-    this.count = count;
-  }
-
-  public String getMethodName()
-  {
-    return this.methodName;
-  }
-
-  public String getClassName()
-  {
-    return this.className;
-  }
-
-  public List<String> getParams()
-  {
-    return this.params;
-  }
-
-  public String getUri(){
+  String getURI(){
     return this.uri;
   }
 
-  public int getCount()
+  public boolean hasRestriction()
   {
-    return this.count;
+    return this.getRestriction() != null;
   }
 
-  public boolean isPrivacySensitive()
+  Api getRestriction()
   {
-    boolean isPrivacySensitive = new ResourceManager().isPrivacySensitive(this);
-    logger.debug(String.format("(%s) => isPrivacySensitive: %s", this.toString(), isPrivacySensitive + ""));
+    Api restriction = new ResourceManager().getRestriction(this);
+    logger.debug(String.format("(%s) => getRestriction: %s", this.toString(), (restriction==null) + ""));
 
-    return isPrivacySensitive;
+    return restriction;
+  }
+
+  public String getURIParamName(){
+    for (int i = 0; i < this.params.size(); ++i){
+      String param = this.params.get(i);
+      if (param.equals("android.net.Uri"))
+        return String.format("p%d", i);
+    }
+
+    return null;
   }
 
   @Override
@@ -126,6 +123,9 @@ public class Api
       return false;
 
     Api otherApi = (Api)other;
-    return false;
+
+    return this.className.equals(otherApi.className) &&
+            this.methodName.equals(otherApi.methodName) &&
+            this.params.equals(otherApi.params);
   }
 }
