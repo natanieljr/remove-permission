@@ -6,11 +6,11 @@ import org.droidmate.analyzer.exploration.Scenario;
  * Evaluate the scenario on the basis that it did not crash and observed/explored a
  * similar amount of widgets than the initial exploration
  */
-public class SameNrOfWidgetsStrategy extends DidNotCrashStrategy {
+public class SimilarExplorationSize extends DidNotCrash {
     private Scenario groundTruth;
     private double threshold;
 
-    public SameNrOfWidgetsStrategy(Scenario groundTruth, double threshold) {
+    public SimilarExplorationSize(Scenario groundTruth, double threshold) {
         this.groundTruth = groundTruth;
         this.threshold = threshold;
 
