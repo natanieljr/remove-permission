@@ -13,7 +13,7 @@ import java.util.List;
 /**
  * Manages data read from resource files
  */
-class ResourceManager
+public class ResourceManager
 {
   private static final Logger logger = LoggerFactory.getLogger(ResourceManager.class);
   private static List<Api> restrictableApis;
@@ -78,11 +78,11 @@ class ResourceManager
     return restrictableApis.contains(api);
   }
 
-  Path getDefaultMonitoredApisFile(){
+  public Path getDefaultMonitoredApisFile(){
     ClassLoader classLoader = getClass().getClassLoader();
     try
     {
-      URL resource = classLoader.getResource("monitored_apis.xml");
+      URL resource = classLoader.getResource("monitored_apis.json");
 
       if (resource != null)
           return Paths.get(resource.toURI());
