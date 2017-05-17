@@ -31,24 +31,3 @@ dependencies {
 
   testCompile group: 'junit', name: 'junit', version: '4.11'
 }
-
-
-task droidmateBuild(type: GradleBuild) {
-  group = "build"
-
-  buildFile = file "~/Documents/saarland/repositories/droidmate/dev/droidmate/build.gradle"
-  tasks = ["clean", "build", "install"]
-}
-
-
-
-task droidmateUsageExamplesBuild(type: GradleBuild) {
-  group = "build"
-
-  buildFile = file "dev/droidmate_usage_examples/build.gradle"
-  tasks = ["clean", "build"]
-}
-
-task integrationBuild(dependsOn: ["droidmateBuild", "droidmateUsageExamplesBuild"]) {
-  group = "build"
-}
