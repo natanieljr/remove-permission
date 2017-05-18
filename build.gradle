@@ -12,7 +12,8 @@ repositories {
 
 dependencies {
   // This dependency is supposed to come from mavenLocal(). See comment on "mavenLocal()" above.
-  compile "org.droidmate:droidmate:dev"
+  compile 'org.droidmate:droidmate:dev'
+  compile 'at.unisalzburg:apted:1.0'
 
   compile "org.gradle:gradle-tooling-api:3.5"
   // The tooling API need an SLF4J implementation available at runtime, replace this with any other implementation

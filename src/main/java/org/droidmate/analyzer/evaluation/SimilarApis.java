@@ -1,0 +1,52 @@
+package org.droidmate.analyzer.evaluation;
+
+import at.unisalzburg.apted.costmodel.StringUnitCostModel;
+import at.unisalzburg.apted.distance.APTED;
+import at.unisalzburg.apted.node.Node;
+import at.unisalzburg.apted.node.StringNodeData;
+import at.unisalzburg.apted.parser.BracketStringInputParser;
+import org.droidmate.analyzer.exploration.IExplorationResult;
+import org.droidmate.analyzer.exploration.IScenario;
+import org.droidmate.analyzer.exploration.Scenario;
+
+/**
+ * Evaluation based on the similarity between the list of explored APIs (Tree edit distance).
+ *
+ * This method uses the APTED algorihm.
+ * Repository was forked to https://github.com/natanieljr/apted and updated.
+ *
+ * Waiting reply from the author to issue a pull request.
+ *
+ * Ref: M. Pawlik and N. Augsten. Tree edit distance: Robust and memory- efficient. Information Systems 56. 2016.
+ */
+public class SimilarApis implements IEvaluationStrategy {
+    private double threshold;
+    private IExplorationResult initialExplRes;
+
+    public SimilarApis(Scenario initialExpl, double threshold){
+        this.initialExplRes = initialExpl.getResult();
+        this.threshold = threshold;
+
+        assert this.threshold > 0;
+        assert this.initialExplRes != null;
+    }
+
+    private double computeDistance(IExplorationResult result){
+        BracketStringInputParser parser = new BracketStringInputParser();
+        String initialExplBracked = this.initialExplRes.toBrackedNotation();
+        String scenarioBracked = result.toBrackedNotation();
+
+        Node<StringNodeData> initialExplApis = parser.fromString(initialExplBracked);
+        Node<StringNodeData> scenarioApis = parser.fromString(scenarioBracked);
+
+        // Initialise APTED. All operations have cost 1
+        APTED<StringUnitCostModel, StringNodeData> apted = new APTED<>(new StringUnitCostModel());
+
+        return apted.computeEditDistance(initialExplApis, scenarioApis);
+    }
+
+    @Override
+    public boolean valid(IExplorationResult result) {
+        return this.computeDistance(result) < this.threshold;
+    }
+}
