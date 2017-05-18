@@ -76,8 +76,12 @@ public class ResourceManager {
         if (ResourceManager.restrictableApis == null)
             this.initializeApiMapping();
 
-        if (restrictableApis.contains(api))
-            return restrictableApis.get(restrictableApis.indexOf(api));
+        if (restrictableApis.contains(api)) {
+            Api restriction = restrictableApis.get(restrictableApis.indexOf(api));
+
+            if (api.sameURI(restriction))
+                return restriction;
+        }
 
         return null;
     }
