@@ -2,8 +2,8 @@ package org.droidmate.analyzer.exploration;
 
 import org.droidmate.analyzer.AppUnderTest;
 import org.droidmate.analyzer.api.IApi;
+import org.droidmate.analyzer.evaluation.EvaluationStrategyBuilder;
 import org.droidmate.analyzer.evaluation.IEvaluationStrategy;
-import org.droidmate.analyzer.evaluation.InitialExplStrategy;
 import org.droidmate.apis.ApiPolicy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,22 +13,27 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class ExplorationStrategy implements IExplorationStrategy{
-    private static final Logger logger = LoggerFactory.getLogger(ExplorationStrategy.class);
+public class DefaultExplorationStrategy implements IExplorationStrategy {
+    private static final Logger logger = LoggerFactory.getLogger(DefaultExplorationStrategy.class);
     private ApiPolicy policy;
-    private IEvaluationStrategy evaluator;
+    private EvaluationStrategyBuilder evaluatorBuilder;
 
-    public ExplorationStrategy(ApiPolicy policy, IEvaluationStrategy evaluator) {
+    public DefaultExplorationStrategy(ApiPolicy policy, EvaluationStrategyBuilder evaluatorBuilder) {
         this.policy = policy;
-        this.evaluator = evaluator;
+        this.evaluatorBuilder = evaluatorBuilder;
     }
 
-    private List<IScenario> getValidScenarios(AppUnderTest app){
+    private List<IScenario> getValidScenarios(AppUnderTest app) {
         return app
                 .getScenarios(app.getCurrExplDepth() - 1)
                 .stream()
                 .filter(IScenario::isValid)
                 .collect(Collectors.toList());
+    }
+
+    private IEvaluationStrategy getEvaluationStrategy(AppUnderTest app) {
+        IScenario initialExpl = app.getInitialExpl();
+        return this.evaluatorBuilder.build(initialExpl);
     }
 
     private List<IScenario> generateSimpleScenarios(AppUnderTest app) {
@@ -45,7 +50,7 @@ public class ExplorationStrategy implements IExplorationStrategy{
             apiStream.forEach(api ->
             {
                 Scenario scenario = Scenario.build(app, Collections.singletonList(api), app.getCurrExplDepth(),
-                        this.policy, this.evaluator);
+                        this.policy, this.getEvaluationStrategy(app));
 
                 // Somehow, the distinct operation of the stream class does not work and
                 // the java.net.URL->openConnection() appears multiple times
@@ -80,7 +85,7 @@ public class ExplorationStrategy implements IExplorationStrategy{
 
     private List<IScenario> generateInitialExpl(AppUnderTest app){
         Scenario s = Scenario.build(app, null, app.getCurrExplDepth(), this.policy,
-                new InitialExplStrategy());
+                this.getEvaluationStrategy(app));
         s.initialize();
         return Collections.singletonList(s);
     }

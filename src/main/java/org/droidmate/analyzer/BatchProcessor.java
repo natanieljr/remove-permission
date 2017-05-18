@@ -1,5 +1,6 @@
 package org.droidmate.analyzer;
 
+import org.droidmate.analyzer.evaluation.EvaluationStrategyBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,6 +48,6 @@ class BatchProcessor {
         this.initializeApkList();
 
         AppUnderTest apk = this.apps.get(0);
-        this.analyzer.analyze(apk, cfg.evaluationStrategy);
+        this.analyzer.analyze(apk, new EvaluationStrategyBuilder(this.cfg.evaluationType, this.cfg.evaluationThreshold));
     }
 }

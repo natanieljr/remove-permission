@@ -5,7 +5,7 @@ import org.droidmate.analyzer.exploration.IExplorationResult;
 
 /**
  * Interface defining metrics to evaluate scenarios. This evaluation is used to define which
- * scenarios can be combined on @org.droidmate.analyzer.exploration.ExplorationStrategy.generateScenarios
+ * scenarios can be combined on @org.droidmate.analyzer.exploration.DefaultExplorationStrategy.generateScenarios
  */
 public interface IEvaluationStrategy {
     /**

@@ -23,7 +23,7 @@ public class SimilarApis implements IEvaluationStrategy {
     private double threshold;
     private IExplorationResult initialExplRes;
 
-    public SimilarApis(Scenario initialExpl, double threshold){
+    SimilarApis(IScenario initialExpl, double threshold){
         this.initialExplRes = initialExpl.getResult();
         this.threshold = threshold;
 
@@ -40,13 +40,18 @@ public class SimilarApis implements IEvaluationStrategy {
         Node<StringNodeData> scenarioApis = parser.fromString(scenarioBracked);
 
         // Initialise APTED. All operations have cost 1
-        APTED<StringUnitCostModel, StringNodeData> apted = new APTED<>(new StringUnitCostModel());
+        APTED<CustomCostModel, StringNodeData> apted = new APTED<>(new CustomCostModel());
 
         return apted.computeEditDistance(initialExplApis, scenarioApis);
     }
 
     @Override
     public boolean valid(IExplorationResult result) {
-        return this.computeDistance(result) < this.threshold;
+        int nrApisInitialExpl = this.initialExplRes.getApiList().size();
+        int nrApisScenario = result.getApiList().size();
+
+        double max = Math.max(nrApisInitialExpl, nrApisScenario);
+        double normalizedDistance = this.computeDistance(result)/max;
+        return normalizedDistance < this.threshold;
     }
 }

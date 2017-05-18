@@ -1,7 +1,9 @@
 package org.droidmate.analyzer;
 
 import org.droidmate.analyzer.evaluation.DidNotCrash;
+import org.droidmate.analyzer.evaluation.EvaluationType;
 import org.droidmate.analyzer.evaluation.IEvaluationStrategy;
+import org.droidmate.analyzer.evaluation.SimilarApis;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -12,7 +14,9 @@ import java.nio.file.Paths;
 public class Configuration {
     // Configuration
     String apkInputDir = "/users/nataniel/Documents/saarland/repositories/remove-permission/apks";
-    IEvaluationStrategy evaluationStrategy = new DidNotCrash();
+
+    public EvaluationType evaluationType   = EvaluationType.SimilarApis;
+    public double evaluationThreshold      = 0.1;
 
     // Droidmate related variables
     private Path droidMateDir = Paths.get("/users/nataniel/Documents/saarland/repositories/droidmate/");

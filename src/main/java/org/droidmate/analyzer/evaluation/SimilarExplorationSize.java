@@ -12,7 +12,7 @@ public class SimilarExplorationSize extends DidNotCrash {
     private IExplorationResult groundTruth;
     private double threshold;
 
-    public SimilarExplorationSize(IScenario groundTruth, double threshold) {
+    SimilarExplorationSize(IScenario groundTruth, double threshold) {
         this.groundTruth = groundTruth.getResult();
         this.threshold = threshold;
 

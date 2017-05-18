@@ -146,6 +146,10 @@ public class ExplorationResult implements IExplorationResult {
 
     @Override
     public String toBrackedNotation(){
-        return "";
+        StringBuilder b = new StringBuilder("root{");
+        this.apiList.forEach(p -> b.append(String.format("{%s}", p.toString())));
+        b.append("}");
+
+        return b.toString();
     }
 }

@@ -8,6 +8,10 @@ import org.droidmate.analyzer.exploration.IScenario;
  */
 @SuppressWarnings("unused")
 public class DidNotCrash implements IEvaluationStrategy {
+    DidNotCrash(){
+        super();
+    }
+
     @Override
     public boolean valid(IExplorationResult result) {
         return !result.hasCrashed();
