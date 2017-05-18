@@ -76,6 +76,12 @@ public class Api {
 
         if (this.params == null)
             this.params = new ArrayList<>();
+
+        if (this.uri == null)
+            this.uri = "";
+
+        assert this.className != null;
+        assert this.methodName != null;
     }
 
     public String getURI() {
@@ -105,15 +111,8 @@ public class Api {
 
     @Override
     public String toString() {
-        return String.format("%s\t%s\t%s", this.className, this.methodName, this.getParamsStr());
-    }
-
-    private String getParamsStr() {
-        return String.join(",", this.params);
-    }
-
-    public boolean sameURI(Api api){
-        return this.uri.equals(api.uri);
+        String paramStr = String.join(",", this.params);
+        return String.format("%s->%s(%s) %s", this.className, this.methodName, paramStr, this.uri);
     }
 
     @Override
@@ -123,8 +122,12 @@ public class Api {
 
         Api otherApi = (Api) other;
 
-        return this.className.equals(otherApi.className) &&
+        // Can use the toString method comparison because it generates a unique signature for each API
+        return this.toString().equals(otherApi.toString());
+
+        /*return this.className.equals(otherApi.className) &&
                 this.methodName.equals(otherApi.methodName) &&
-                this.params.equals(otherApi.params);
+                this.params.equals(otherApi.params) &&
+                this.uri.equals(otherApi.uri);*/
     }
 }
