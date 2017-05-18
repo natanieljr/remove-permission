@@ -1,6 +1,7 @@
 package org.droidmate.analyzer.exploration;
 
 import org.droidmate.analyzer.api.Api;
+import org.droidmate.analyzer.api.IApi;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,7 +22,7 @@ public class ExplorationResult {
     private boolean crashed;
     private int nrWidgetsObs;
     private int nrWidgetsExpl;
-    private List<Api> apiList;
+    private List<IApi> apiList;
 
     public ExplorationResult(Path explDir) {
         logger.debug(String.format("Reading exploration results in %s", explDir.toString()));
@@ -73,7 +74,7 @@ public class ExplorationResult {
             this.readStatsFile(statsFile);
     }
 
-    List<Api> getApiList(){
+    List<IApi> getApiList(){
         return this.apiList;
     }
 
@@ -123,7 +124,7 @@ public class ExplorationResult {
                         className = className.replace(":", "");
 
                         i += 1;
-                        Api api = Api.build(className, methodName, params, uri);
+                        IApi api = Api.build(className, methodName, params, uri);
                         logger.debug(String.format("Identified API %s", api.toString()));
                         this.apiList.add(api);
                     }

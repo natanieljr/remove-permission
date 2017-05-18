@@ -1,6 +1,7 @@
 package org.droidmate.analyzer;
 
 import org.droidmate.analyzer.api.Api;
+import org.droidmate.analyzer.api.IApi;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,7 +18,7 @@ import java.util.List;
  */
 public class ResourceManager {
     private static final Logger logger = LoggerFactory.getLogger(ResourceManager.class);
-    private static List<Api> restrictableApis;
+    private static List<IApi> restrictableApis;
 
     private void processLine(String line) {
         String classAndMethodNameStr = line;
@@ -36,7 +37,7 @@ public class ResourceManager {
         String params = Api.getParamsFromMethodSignature(methodSignature);
         String methodName = Api.getMethodNameFromSignature(methodSignature);
 
-        Api api = Api.build(className, methodName, params, uri);
+        IApi api = Api.build(className, methodName, params, uri);
 
         ResourceManager.restrictableApis.add(api);
     }
@@ -72,7 +73,7 @@ public class ResourceManager {
         assert ResourceManager.restrictableApis.size() > 0;
     }
 
-    public Api getRestriction(Api api) {
+    public IApi getRestriction(IApi api) {
         if (ResourceManager.restrictableApis == null)
             this.initializeApiMapping();
 

@@ -1,23 +1,24 @@
 package org.droidmate.analyzer.evaluation;
 
-import org.droidmate.analyzer.exploration.Scenario;
+import org.droidmate.analyzer.exploration.IScenario;
 
 /**
  * Evaluate the scenario on the basis that it did not crash and observed/explored a
  * similar amount of widgets than the initial exploration
  */
+@SuppressWarnings("unused")
 public class SimilarExplorationSize extends DidNotCrash {
-    private Scenario groundTruth;
+    private IScenario groundTruth;
     private double threshold;
 
-    public SimilarExplorationSize(Scenario groundTruth, double threshold) {
+    public SimilarExplorationSize(IScenario groundTruth, double threshold) {
         this.groundTruth = groundTruth;
         this.threshold = threshold;
 
         assert threshold > 0;
     }
 
-    private double getDifference(Scenario scenario) {
+    private double getDifference(IScenario scenario) {
         double groundTruthSize = groundTruth.getSize();
         double scenarioSize = scenario.getSize();
 
@@ -27,7 +28,7 @@ public class SimilarExplorationSize extends DidNotCrash {
     }
 
     @Override
-    public boolean valid(Scenario scenario) {
+    public boolean valid(IScenario scenario) {
         return this.getDifference(scenario) < threshold;
     }
 }

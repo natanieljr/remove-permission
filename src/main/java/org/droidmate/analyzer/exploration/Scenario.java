@@ -1,13 +1,13 @@
 package org.droidmate.analyzer.exploration;
 
 import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import org.apache.commons.io.FileUtils;
 import org.droidmate.analyzer.AppUnderTest;
 import org.droidmate.analyzer.ResourceManager;
 import org.droidmate.analyzer.api.Api;
+import org.droidmate.analyzer.api.IApi;
 import org.droidmate.analyzer.evaluation.IScenarioEvaluationStrategy;
 import org.droidmate.apis.ApiPolicy;
 import org.slf4j.Logger;
@@ -27,11 +27,11 @@ import static java.nio.file.Files.readAllLines;
 /**
  * Scenario (to be) explored
  */
-public class Scenario {
+public class Scenario implements IScenario {
     private static final Logger logger = LoggerFactory.getLogger(Scenario.class);
 
     private ExplorationResult result;
-    private List<Api> restrictedApis;
+    private List<IApi> restrictedApis;
     private int explDepth;
     private Path dir;
     private Path cfgFile;
@@ -40,7 +40,7 @@ public class Scenario {
     private ApiPolicy policy;
     private IScenarioEvaluationStrategy evaluator;
 
-    private Scenario(AppUnderTest app, List<Api> restrictedApis, int explDepth, ApiPolicy policy,
+    private Scenario(AppUnderTest app, List<IApi> restrictedApis, int explDepth, ApiPolicy policy,
                      IScenarioEvaluationStrategy evaluator) {
         this.app = app;
         this.restrictedApis = restrictedApis;
@@ -49,13 +49,7 @@ public class Scenario {
         this.evaluator = evaluator;
     }
 
-    void initialize(){
-        this.createDir();
-        Path cfgFile = this.createCfgFile(this.restrictedApis);
-        this.setCfgFile(cfgFile);
-    }
-
-    static Scenario build(AppUnderTest app, List<Api> restrictedApis, int explDepth, ApiPolicy policy,
+    static Scenario build(AppUnderTest app, List<IApi> restrictedApis, int explDepth, ApiPolicy policy,
                           IScenarioEvaluationStrategy evaluator) {
         if (restrictedApis == null)
             restrictedApis = new ArrayList<>();
@@ -63,16 +57,21 @@ public class Scenario {
         return new Scenario(app, restrictedApis, explDepth, policy, evaluator);
     }
 
-    static Scenario build(Scenario s1, Scenario s2, int explDepth) {
-        List<Api> restrictedApis = new ArrayList<>();
-        restrictedApis.addAll(s1.restrictedApis);
-        restrictedApis.addAll(s2.restrictedApis);
-        restrictedApis.sort(Comparator.comparing(Api::toString));
+    static Scenario build(IScenario s1, IScenario s2, int explDepth) {
+        List<IApi> restrictedApis = new ArrayList<>();
+        Scenario scenario1 = (Scenario)s1;
+        restrictedApis.addAll(scenario1.restrictedApis);
 
-        return Scenario.build(s1.app, restrictedApis, explDepth, s1.policy, s1.evaluator);
+        for(IApi api : ((Scenario)s2).restrictedApis)
+            if (!restrictedApis.contains(api))
+                restrictedApis.add(api);
+
+        restrictedApis.sort(Comparator.comparing(IApi::toString));
+
+        return Scenario.build(scenario1.app, restrictedApis, explDepth, scenario1.policy, scenario1.evaluator);
     }
 
-    private void applyRestriction(JsonObject api, Api restriction) {
+    private void applyRestriction(JsonObject api, IApi restriction) {
         if (restriction.getURI().length() > 0) {
             // Currently the URIs are called "uri", so no fancy logic was developed
             String newRestriction = String.format("%s.toString().equals(\"%s\")",
@@ -101,7 +100,7 @@ public class Scenario {
         return newFile;
     }
 
-    private Path createCfgFile(List<Api> restrictedApis) {
+    private Path createCfgFile(List<IApi> restrictedApis) {
 
         Path defaultFile = new ResourceManager().getDefaultMonitoredApisFile();
 
@@ -117,7 +116,7 @@ public class Scenario {
 
             apis.forEach(item ->
             {
-                Api api = Api.build((JsonObject) item);
+                IApi api = Api.build((JsonObject) item);
 
                 // Check if APi is being restricted
                 if ((restrictedApis.contains(api)) && (api.hasRestriction())) {
@@ -150,10 +149,19 @@ public class Scenario {
         return this.dir;
     }
 
+    @Override
+    public void initialize(){
+        this.createDir();
+        Path cfgFile = this.createCfgFile(this.restrictedApis);
+        this.setCfgFile(cfgFile);
+    }
+
+    @Override
     public ExplorationResult getResult() {
         return this.result;
     }
 
+    @Override
     public void setResult(ExplorationResult result) {
         Path newResDir = this.copyExplOutputToDir(result);
         this.result = new ExplorationResult(newResDir);
@@ -180,10 +188,12 @@ public class Scenario {
         return dst;
     }
 
+    @Override
     public int getExplDepth() {
         return this.explDepth;
     }
 
+    @Override
     public Path getCfgFile() {
         return this.cfgFile;
     }
@@ -207,10 +217,12 @@ public class Scenario {
         assert Files.exists(this.cfgFile);
     }
 
+    @Override
     public Path getInlinedApk() {
         return this.inlinedApk;
     }
 
+    @Override
     public void setInlinedApk(Path inlinedApk) {
         String fileName = inlinedApk.getFileName().toString();
         this.inlinedApk = Paths.get(this.getDir().toString(), fileName);
@@ -224,7 +236,8 @@ public class Scenario {
         assert Files.exists(this.inlinedApk);
     }
 
-    public List<Api> getExploredApiList(){
+    @Override
+    public List<IApi> getExploredApiList(){
         if (this.result == null)
             return new ArrayList<>();
 
@@ -236,10 +249,12 @@ public class Scenario {
         return other instanceof Scenario && this.restrictedApis.equals(((Scenario) other).restrictedApis);
     }
 
+    @Override
     public boolean hasCrashed(){
         return (this.result != null) && this.result.hasCrashed();
     }
 
+    @Override
     public double getSize(){
         if (this.result != null)
             return this.getSize();
@@ -247,7 +262,8 @@ public class Scenario {
         return 0.0;
     }
 
-    boolean isValid() {
+    @Override
+    public boolean isValid() {
         return this.evaluator.valid(this);
     }
 }

@@ -13,7 +13,7 @@ import java.util.List;
 /**
  * API identified during exploration
  */
-public class Api {
+public class Api implements IApi {
     private static final Logger logger = LoggerFactory.getLogger(Api.class);
 
     private String className;
@@ -21,7 +21,7 @@ public class Api {
     private List<String> params;
     private String uri;
 
-    public static Api build(JsonObject jsonObject) {
+    public static IApi build(JsonObject jsonObject) {
         String className = jsonObject.get("className").getAsString();
         String methodName = jsonObject.get("methodName").getAsString();
         List<String> paramList = new ArrayList<>();
@@ -31,7 +31,7 @@ public class Api {
         return Api.build(className, methodName, paramList, "");
     }
 
-    public static Api build(String className, String methodName, String paramStr, String uri) {
+    public static IApi build(String className, String methodName, String paramStr, String uri) {
         List<String> paramList = new ArrayList<>();
 
         if (paramStr.contains(",")) {
@@ -44,7 +44,7 @@ public class Api {
         return Api.build(className, methodName, paramList, uri);
     }
 
-    private static Api build(String className, String methodName, List<String> params, String uri) {
+    private static IApi build(String className, String methodName, List<String> params, String uri) {
         return new Api(className, methodName, params, uri);
     }
 
@@ -84,21 +84,25 @@ public class Api {
         assert this.methodName != null;
     }
 
+    @Override
     public String getURI() {
         return this.uri;
     }
 
+    @Override
     public boolean hasRestriction() {
         return this.getRestriction() != null;
     }
 
-    public Api getRestriction() {
-        Api restriction = new ResourceManager().getRestriction(this);
+    @Override
+    public IApi getRestriction() {
+        IApi restriction = new ResourceManager().getRestriction(this);
         logger.debug(String.format("(%s) => getRestriction: %s", this.toString(), (restriction == null) + ""));
 
         return restriction;
     }
 
+    @Override
     public String getURIParamName() {
         for (int i = 0; i < this.params.size(); ++i) {
             String param = this.params.get(i);
@@ -120,14 +124,9 @@ public class Api {
         if (!(other instanceof Api))
             return false;
 
-        Api otherApi = (Api) other;
+        IApi otherApi = (IApi) other;
 
         // Can use the toString method comparison because it generates a unique signature for each API
         return this.toString().equals(otherApi.toString());
-
-        /*return this.className.equals(otherApi.className) &&
-                this.methodName.equals(otherApi.methodName) &&
-                this.params.equals(otherApi.params) &&
-                this.uri.equals(otherApi.uri);*/
     }
 }

@@ -5,8 +5,13 @@ import org.droidmate.analyzer.AppUnderTest;
 import java.util.List;
 
 /**
- * Define how scenarios are generated and combined
+ * Strategy to create scenarios during the experiment
  */
 public interface IExplorationStrategy {
-    List<Scenario> generateScenarios(AppUnderTest app);
+    /**
+     * Create new scenarios to be explored
+     * @param app An application to be explored
+     * @return List of new scenarios ot be explored. If it is not possible to generate new scenarios, returns an empty list
+     */
+    List<IScenario> generateScenarios(AppUnderTest app);
 }

@@ -3,10 +3,11 @@ package org.droidmate.analyzer;
 import net.dongliu.apk.parser.ApkFile;
 import net.dongliu.apk.parser.bean.ApkMeta;
 import org.apache.commons.io.FileUtils;
-import org.droidmate.analyzer.api.Api;
 import org.droidmate.analyzer.api.DummyApkMeta;
+import org.droidmate.analyzer.api.IApi;
 import org.droidmate.analyzer.exploration.ExplorationResult;
 import org.droidmate.analyzer.exploration.IExplorationStrategy;
+import org.droidmate.analyzer.exploration.IScenario;
 import org.droidmate.analyzer.exploration.Scenario;
 import org.droidmate.analyzer.wrappers.BoxMateWrapper;
 import org.slf4j.Logger;
@@ -32,7 +33,7 @@ public class AppUnderTest {
     private BoxMateWrapper boxMate;
     private ApkFile apk;
     private Path apkFile;
-    private List<Scenario> scenarios;
+    private List<IScenario> scenarios;
     private int currExplDepth;
     private Path dir;
 
@@ -90,8 +91,8 @@ public class AppUnderTest {
         return this.dir;
     }
 
-    public Scenario getInitialExpl() {
-        Optional<Scenario> scenarioStream = this.scenarios.stream()
+    public IScenario getInitialExpl() {
+        Optional<IScenario> scenarioStream = this.scenarios.stream()
                 .filter(p -> p.getExplDepth() == 0)
                 .findFirst();
 
@@ -102,20 +103,20 @@ public class AppUnderTest {
         return this.currExplDepth;
     }
 
-    public List<Scenario> getScenarios(int depth) {
+    public List<IScenario> getScenarios(int depth) {
         return this.scenarios.stream()
                 .filter(p -> p.getExplDepth() == depth)
                 .collect(Collectors.toList());
     }
 
-    private void addScenarios(Collection<Scenario> expl) {
+    private void addScenarios(Collection<IScenario> expl) {
         assert (expl != null);
 
         if (expl.size() > 0)
             this.scenarios.addAll(expl);
     }
 
-    private List<Scenario> getPendingScenarios() {
+    private List<IScenario> getPendingScenarios() {
         return this.scenarios.stream()
                 .filter(p -> p.getResult() == null)
                 .collect(Collectors.toList());
@@ -129,35 +130,35 @@ public class AppUnderTest {
         return this.getMeta().getPackageName();
     }
 
-    private void inline(Scenario scenario) {
+    private void inline(IScenario scenario) {
         // Inline app
         Path inlinedFile = boxMate.inlineApp(this.getApkFile(), scenario.getCfgFile());
         scenario.setInlinedApk(inlinedFile);
         assert scenario.getInlinedApk() != null;
     }
 
-    private List<Api> getInitialApiList(){
-        Scenario initialExpl = this.getInitialExpl();
+    private List<IApi> getInitialApiList(){
+        IScenario initialExpl = this.getInitialExpl();
         if (initialExpl == null)
             return new ArrayList<>();
 
         return initialExpl.getExploredApiList();
     }
 
-    public List<Api> getInitialMonitoredApiList(){
+    public List<IApi> getInitialMonitoredApiList(){
         return this.getInitialApiList().stream()
-                .filter(Api::hasRestriction)
+                .filter(IApi::hasRestriction)
                 .distinct()
                 .collect(Collectors.toList());
     }
 
     void explore(IExplorationStrategy strategy) {
         // Initial expl
-        List<Scenario> initialExpl = strategy.generateScenarios(this);
+        List<IScenario> initialExpl = strategy.generateScenarios(this);
         this.addScenarios(initialExpl);
 
         while (this.hasPendingScenarios()) {
-            for (Scenario scenario : this.getPendingScenarios()) {
+            for (IScenario scenario : this.getPendingScenarios()) {
                 this.inline(scenario);
                 ExplorationResult explRes;
 
@@ -167,7 +168,7 @@ public class AppUnderTest {
             }
 
             ++this.currExplDepth;
-            List<Scenario> newScenarios = strategy.generateScenarios(this);
+            List<IScenario> newScenarios = strategy.generateScenarios(this);
             this.addScenarios(newScenarios);
         }
     }

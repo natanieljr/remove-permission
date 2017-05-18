@@ -1,7 +1,7 @@
 package org.droidmate.analyzer.exploration;
 
-import org.droidmate.analyzer.api.Api;
 import org.droidmate.analyzer.AppUnderTest;
+import org.droidmate.analyzer.api.IApi;
 import org.droidmate.analyzer.evaluation.IScenarioEvaluationStrategy;
 import org.droidmate.analyzer.evaluation.InitialExplStrategy;
 import org.droidmate.apis.ApiPolicy;
@@ -12,7 +12,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class ExplorationStrategy implements IExplorationStrategy{
     private static final Logger logger = LoggerFactory.getLogger(ExplorationStrategy.class);
@@ -24,24 +23,24 @@ public class ExplorationStrategy implements IExplorationStrategy{
         this.evaluator = evaluator;
     }
 
-    private List<Scenario> getValidScenarios(AppUnderTest app){
+    private List<IScenario> getValidScenarios(AppUnderTest app){
         return app
                 .getScenarios(app.getCurrExplDepth() - 1)
                 .stream()
-                .filter(Scenario::isValid)
+                .filter(IScenario::isValid)
                 .collect(Collectors.toList());
     }
 
-    private List<Scenario> generateSimpleScenarios(AppUnderTest app) {
+    private List<IScenario> generateSimpleScenarios(AppUnderTest app) {
         logger.info("Generating simple scenarios");
 
-        List<Scenario> scenarios = new ArrayList<>();
+        List<IScenario> scenarios = new ArrayList<>();
 
         // Don't continue the experiment if the initial exploration is not valid
         if (app.getInitialExpl().isValid()) {
 
             // filter privacy sensitive APIs (unique)
-            List<Api> apiStream = app.getInitialMonitoredApiList();
+            List<IApi> apiStream = app.getInitialMonitoredApiList();
 
             apiStream.forEach(api ->
             {
@@ -60,27 +59,26 @@ public class ExplorationStrategy implements IExplorationStrategy{
         return scenarios;
     }
 
-    private List<Scenario> generateCompositeScenarios(AppUnderTest app) {
+    private List<IScenario> generateCompositeScenarios(AppUnderTest app) {
         logger.info("Generating composite scenarios");
 
-        List<Scenario> scenarios = new ArrayList<>();
-        List<Scenario> lastScenarios = this.getValidScenarios(app);
+        List<IScenario> scenarios = new ArrayList<>();
+        List<IScenario> lastScenarios = this.getValidScenarios(app);
 
-        for(Scenario s1 : lastScenarios)
-            for(Scenario s2 : lastScenarios)
+        for(IScenario s1 : lastScenarios)
+            for(IScenario s2 : lastScenarios)
                 if (!s1.equals(s2)){
                     Scenario newScenario = Scenario.build(s1, s2, app.getCurrExplDepth());
 
-                    if (!lastScenarios.contains(newScenario)) {
+                    if (!scenarios.contains(newScenario)) {
                         newScenario.initialize();
                         scenarios.add(newScenario);
                     }
                 }
-
         return scenarios;
     }
 
-    private List<Scenario> generateInitialExpl(AppUnderTest app){
+    private List<IScenario> generateInitialExpl(AppUnderTest app){
         Scenario s = Scenario.build(app, null, app.getCurrExplDepth(), this.policy,
                 new InitialExplStrategy());
         s.initialize();
@@ -88,7 +86,7 @@ public class ExplorationStrategy implements IExplorationStrategy{
     }
 
     @Override
-    public List<Scenario> generateScenarios(AppUnderTest app) {
+    public List<IScenario> generateScenarios(AppUnderTest app) {
         int currDepth = app.getCurrExplDepth();
         logger.info(String.format("Generating scenarios of depth %d", currDepth));
 
