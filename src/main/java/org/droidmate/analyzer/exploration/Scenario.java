@@ -19,6 +19,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 import static java.nio.file.Files.readAllLines;
@@ -46,9 +47,11 @@ public class Scenario {
         this.explDepth = explDepth;
         this.policy = policy;
         this.evaluator = evaluator;
+    }
 
+    void initialize(){
         this.createDir();
-        Path cfgFile = this.createCfgFile(restrictedApis);
+        Path cfgFile = this.createCfgFile(this.restrictedApis);
         this.setCfgFile(cfgFile);
     }
 
@@ -60,10 +63,11 @@ public class Scenario {
         return new Scenario(app, restrictedApis, explDepth, policy, evaluator);
     }
 
-    static Scenario merge(Scenario s1, Scenario s2, int explDepth) {
+    static Scenario build(Scenario s1, Scenario s2, int explDepth) {
         List<Api> restrictedApis = new ArrayList<>();
         restrictedApis.addAll(s1.restrictedApis);
         restrictedApis.addAll(s2.restrictedApis);
+        restrictedApis.sort(Comparator.comparing(Api::toString));
 
         return Scenario.build(s1.app, restrictedApis, explDepth, s1.policy, s1.evaluator);
     }
@@ -109,9 +113,9 @@ public class Scenario {
             String fileData = String.join("\n", Files.readAllLines(defaultFile));
             JsonObject jsonApiList = new JsonParser().parse(fileData).getAsJsonObject();
 
-            JsonElement apis = jsonApiList.get("apis");
+            JsonArray apis = (JsonArray) jsonApiList.get("apis");
 
-            ((JsonArray) apis).forEach(item ->
+            apis.forEach(item ->
             {
                 Api api = Api.build((JsonObject) item);
 
