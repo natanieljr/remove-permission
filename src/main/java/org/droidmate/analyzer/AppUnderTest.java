@@ -3,6 +3,7 @@ package org.droidmate.analyzer;
 import net.dongliu.apk.parser.ApkFile;
 import net.dongliu.apk.parser.bean.ApkMeta;
 import org.apache.commons.io.FileUtils;
+import org.droidmate.analyzer.api.Api;
 import org.droidmate.analyzer.api.DummyApkMeta;
 import org.droidmate.analyzer.exploration.ExplorationResult;
 import org.droidmate.analyzer.exploration.IExplorationStrategy;
@@ -133,6 +134,14 @@ public class AppUnderTest {
         Path inlinedFile = boxMate.inlineApp(this.getApkFile(), scenario.getCfgFile());
         scenario.setInlinedApk(inlinedFile);
         assert scenario.getInlinedApk() != null;
+    }
+
+    public List<Api> getInitialApiList(){
+        Scenario initialExpl = this.getInitialExpl();
+        if (initialExpl == null)
+            return new ArrayList<>();
+
+        return initialExpl.getExploredApiList();
     }
 
     void explore(IExplorationStrategy strategy) {

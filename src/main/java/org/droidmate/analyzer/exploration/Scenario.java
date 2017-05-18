@@ -220,6 +220,13 @@ public class Scenario {
         assert Files.exists(this.inlinedApk);
     }
 
+    public List<Api> getExploredApiList(){
+        if (this.result == null)
+            return new ArrayList<>();
+
+        return this.result.getApiList();
+    }
+
     @Override
     public boolean equals(Object other) {
         return other instanceof Scenario && this.restrictedApis.equals(((Scenario) other).restrictedApis);

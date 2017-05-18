@@ -112,6 +112,10 @@ public class Api {
         return String.join(",", this.params);
     }
 
+    public boolean sameURI(Api api){
+        return this.uri.equals(api.uri);
+    }
+
     @Override
     public boolean equals(Object other) {
         if (!(other instanceof Api))

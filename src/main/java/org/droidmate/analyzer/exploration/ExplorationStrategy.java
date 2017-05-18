@@ -41,11 +41,13 @@ public class ExplorationStrategy implements IExplorationStrategy{
         // Don't continue the experiment if the initial exploration crashed
         if (!app.getInitialExpl().hasCrashed()) {
 
-            // filter privacy sensitive APIs
-            Stream<Api> apiStream = app.getInitialExpl().getResult()
-                    .getApiList().stream().filter(Api::hasRestriction);
+            // filter privacy sensitive APIs (unique)
+            List<Api> apiStream = app.getInitialApiList().stream()
+                    .filter(Api::hasRestriction)
+                    .distinct()
+                    .collect(Collectors.toList());
 
-            apiStream.forEachOrdered(api ->
+            apiStream.forEach(api ->
             {
                 Scenario scenario = Scenario.build(app, Collections.singletonList(api), app.getCurrExplDepth(),
                         this.policy, this.evaluator);
