@@ -8,6 +8,6 @@ import org.droidmate.analyzer.exploration.Scenario;
 public class InitialExplStrategy implements IScenarioEvaluationStrategy {
     @Override
     public boolean valid(Scenario scenario) {
-        return (scenario.getResult() != null) && scenario.getResult().hasCrashed();
+        return (scenario.getResult() != null) && !scenario.getResult().hasCrashed();
     }
 }

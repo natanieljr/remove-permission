@@ -8,6 +8,6 @@ import org.droidmate.analyzer.exploration.Scenario;
 public class DidNotCrash implements IScenarioEvaluationStrategy {
     @Override
     public boolean valid(Scenario scenario) {
-        return scenario.hasCrashed();
+        return !scenario.hasCrashed();
     }
 }

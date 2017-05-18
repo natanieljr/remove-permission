@@ -25,7 +25,6 @@ public class ExplorationStrategy implements IExplorationStrategy{
     }
 
     private List<Scenario> getValidScenarios(AppUnderTest app){
-
         return app
                 .getScenarios(app.getCurrExplDepth() - 1)
                 .stream()
@@ -38,20 +37,23 @@ public class ExplorationStrategy implements IExplorationStrategy{
 
         List<Scenario> scenarios = new ArrayList<>();
 
-        // Don't continue the experiment if the initial exploration crashed
-        if (!app.getInitialExpl().hasCrashed()) {
+        // Don't continue the experiment if the initial exploration is not valid
+        if (app.getInitialExpl().isValid()) {
 
             // filter privacy sensitive APIs (unique)
-            List<Api> apiStream = app.getInitialApiList().stream()
-                    .filter(Api::hasRestriction)
-                    .distinct()
-                    .collect(Collectors.toList());
+            List<Api> apiStream = app.getInitialMonitoredApiList();
 
             apiStream.forEach(api ->
             {
                 Scenario scenario = Scenario.build(app, Collections.singletonList(api), app.getCurrExplDepth(),
                         this.policy, this.evaluator);
-                scenarios.add(scenario);
+
+                // Somehow, the distinct operation of the stream class does not work and
+                // the java.net.URL->openConnection() appears multiple times
+                if (!scenarios.contains(scenario)) {
+                    scenario.initialize();
+                    scenarios.add(scenario);
+                }
             });
         }
 
@@ -67,10 +69,12 @@ public class ExplorationStrategy implements IExplorationStrategy{
         for(Scenario s1 : lastScenarios)
             for(Scenario s2 : lastScenarios)
                 if (!s1.equals(s2)){
-                    Scenario newScenario = Scenario.merge(s1, s2, app.getCurrExplDepth());
+                    Scenario newScenario = Scenario.build(s1, s2, app.getCurrExplDepth());
 
-                    if (!lastScenarios.contains(newScenario))
+                    if (!lastScenarios.contains(newScenario)) {
+                        newScenario.initialize();
                         scenarios.add(newScenario);
+                    }
                 }
 
         return scenarios;
@@ -79,6 +83,7 @@ public class ExplorationStrategy implements IExplorationStrategy{
     private List<Scenario> generateInitialExpl(AppUnderTest app){
         Scenario s = Scenario.build(app, null, app.getCurrExplDepth(), this.policy,
                 new InitialExplStrategy());
+        s.initialize();
         return Collections.singletonList(s);
     }
 

@@ -136,12 +136,19 @@ public class AppUnderTest {
         assert scenario.getInlinedApk() != null;
     }
 
-    public List<Api> getInitialApiList(){
+    private List<Api> getInitialApiList(){
         Scenario initialExpl = this.getInitialExpl();
         if (initialExpl == null)
             return new ArrayList<>();
 
         return initialExpl.getExploredApiList();
+    }
+
+    public List<Api> getInitialMonitoredApiList(){
+        return this.getInitialApiList().stream()
+                .filter(Api::hasRestriction)
+                .distinct()
+                .collect(Collectors.toList());
     }
 
     void explore(IExplorationStrategy strategy) {
