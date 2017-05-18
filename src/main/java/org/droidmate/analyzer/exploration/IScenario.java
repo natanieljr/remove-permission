@@ -9,11 +9,11 @@ import java.util.List;
  * Scenario (to be) executed during the experiment
  */
 public interface IScenario {
-    ExplorationResult getResult();
+    IExplorationResult getResult();
 
     void initialize();
 
-    void setResult(ExplorationResult result);
+    void setResult(IExplorationResult result);
 
     int getExplDepth();
 
@@ -24,10 +24,6 @@ public interface IScenario {
     void setInlinedApk(Path inlinedApk);
 
     List<IApi> getExploredApiList();
-
-    boolean hasCrashed();
-
-    double getSize();
 
     boolean isValid();
 }

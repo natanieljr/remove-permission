@@ -8,7 +8,7 @@ import org.droidmate.analyzer.AppUnderTest;
 import org.droidmate.analyzer.ResourceManager;
 import org.droidmate.analyzer.api.Api;
 import org.droidmate.analyzer.api.IApi;
-import org.droidmate.analyzer.evaluation.IScenarioEvaluationStrategy;
+import org.droidmate.analyzer.evaluation.IEvaluationStrategy;
 import org.droidmate.apis.ApiPolicy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,15 +22,13 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
-import static java.nio.file.Files.readAllLines;
-
 /**
  * Scenario (to be) explored
  */
 public class Scenario implements IScenario {
     private static final Logger logger = LoggerFactory.getLogger(Scenario.class);
 
-    private ExplorationResult result;
+    private IExplorationResult result;
     private List<IApi> restrictedApis;
     private int explDepth;
     private Path dir;
@@ -38,10 +36,10 @@ public class Scenario implements IScenario {
     private Path inlinedApk;
     private AppUnderTest app;
     private ApiPolicy policy;
-    private IScenarioEvaluationStrategy evaluator;
+    private IEvaluationStrategy evaluator;
 
     private Scenario(AppUnderTest app, List<IApi> restrictedApis, int explDepth, ApiPolicy policy,
-                     IScenarioEvaluationStrategy evaluator) {
+                     IEvaluationStrategy evaluator) {
         this.app = app;
         this.restrictedApis = restrictedApis;
         this.explDepth = explDepth;
@@ -50,7 +48,7 @@ public class Scenario implements IScenario {
     }
 
     static Scenario build(AppUnderTest app, List<IApi> restrictedApis, int explDepth, ApiPolicy policy,
-                          IScenarioEvaluationStrategy evaluator) {
+                          IEvaluationStrategy evaluator) {
         if (restrictedApis == null)
             restrictedApis = new ArrayList<>();
 
@@ -157,17 +155,17 @@ public class Scenario implements IScenario {
     }
 
     @Override
-    public ExplorationResult getResult() {
+    public IExplorationResult getResult() {
         return this.result;
     }
 
     @Override
-    public void setResult(ExplorationResult result) {
+    public void setResult(IExplorationResult result) {
         Path newResDir = this.copyExplOutputToDir(result);
         this.result = new ExplorationResult(newResDir);
     }
 
-    private Path copyExplOutputToDir(ExplorationResult res) {
+    private Path copyExplOutputToDir(IExplorationResult res) {
         Path src = res.getExplDir();
         Path dst = Paths.get(this.getDir().toString(), "output_device1");
 
@@ -250,20 +248,7 @@ public class Scenario implements IScenario {
     }
 
     @Override
-    public boolean hasCrashed(){
-        return (this.result != null) && this.result.hasCrashed();
-    }
-
-    @Override
-    public double getSize(){
-        if (this.result != null)
-            return this.getSize();
-
-        return 0.0;
-    }
-
-    @Override
     public boolean isValid() {
-        return this.evaluator.valid(this);
+        return this.evaluator.valid(this.result);
     }
 }

@@ -5,10 +5,7 @@ import net.dongliu.apk.parser.bean.ApkMeta;
 import org.apache.commons.io.FileUtils;
 import org.droidmate.analyzer.api.DummyApkMeta;
 import org.droidmate.analyzer.api.IApi;
-import org.droidmate.analyzer.exploration.ExplorationResult;
-import org.droidmate.analyzer.exploration.IExplorationStrategy;
-import org.droidmate.analyzer.exploration.IScenario;
-import org.droidmate.analyzer.exploration.Scenario;
+import org.droidmate.analyzer.exploration.*;
 import org.droidmate.analyzer.wrappers.BoxMateWrapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -160,7 +157,7 @@ public class AppUnderTest {
         while (this.hasPendingScenarios()) {
             for (IScenario scenario : this.getPendingScenarios()) {
                 this.inline(scenario);
-                ExplorationResult explRes;
+                IExplorationResult explRes;
 
                 explRes = boxMate.explore(scenario.getInlinedApk(), scenario.getExplDepth() == 0);
                 scenario.setResult(explRes);

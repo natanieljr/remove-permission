@@ -2,7 +2,7 @@ package org.droidmate.analyzer.exploration;
 
 import org.droidmate.analyzer.AppUnderTest;
 import org.droidmate.analyzer.api.IApi;
-import org.droidmate.analyzer.evaluation.IScenarioEvaluationStrategy;
+import org.droidmate.analyzer.evaluation.IEvaluationStrategy;
 import org.droidmate.analyzer.evaluation.InitialExplStrategy;
 import org.droidmate.apis.ApiPolicy;
 import org.slf4j.Logger;
@@ -16,9 +16,9 @@ import java.util.stream.Collectors;
 public class ExplorationStrategy implements IExplorationStrategy{
     private static final Logger logger = LoggerFactory.getLogger(ExplorationStrategy.class);
     private ApiPolicy policy;
-    private IScenarioEvaluationStrategy evaluator;
+    private IEvaluationStrategy evaluator;
 
-    public ExplorationStrategy(ApiPolicy policy, IScenarioEvaluationStrategy evaluator) {
+    public ExplorationStrategy(ApiPolicy policy, IEvaluationStrategy evaluator) {
         this.policy = policy;
         this.evaluator = evaluator;
     }

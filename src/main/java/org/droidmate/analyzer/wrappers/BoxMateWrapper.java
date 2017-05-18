@@ -4,6 +4,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.droidmate.analyzer.Configuration;
 import org.droidmate.analyzer.exploration.ExplorationResult;
+import org.droidmate.analyzer.exploration.IExplorationResult;
 import org.droidmate.frontend.DroidmateFrontend;
 import org.gradle.tooling.BuildLauncher;
 import org.gradle.tooling.GradleConnector;
@@ -110,7 +111,7 @@ public class BoxMateWrapper {
         assert Files.exists(unpackedDir);
     }
 
-    public ExplorationResult explore(Path apk, boolean isInitialExpl) {
+    public IExplorationResult explore(Path apk, boolean isInitialExpl) {
         String fileName = apk.getFileName().toString();
         if (isInitialExpl)
             logger.info(String.format("BoxMate explore: %s", fileName));

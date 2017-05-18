@@ -15,7 +15,7 @@ import java.util.List;
 /**
  * Processed exploration results
  */
-public class ExplorationResult {
+public class ExplorationResult implements IExplorationResult {
     private static final Logger logger = LoggerFactory.getLogger(ExplorationResult.class);
 
     private Path explDir;
@@ -33,10 +33,12 @@ public class ExplorationResult {
         this.readSummary();
     }
 
+    @Override
     public Path getExplDir() {
         return this.explDir;
     }
 
+    @Override
     public boolean hasCrashed() {
         return this.crashed;
     }
@@ -74,7 +76,8 @@ public class ExplorationResult {
             this.readStatsFile(statsFile);
     }
 
-    List<IApi> getApiList(){
+    @Override
+    public List<IApi> getApiList(){
         return this.apiList;
     }
 
@@ -136,7 +139,13 @@ public class ExplorationResult {
         }
     }
 
-    private double getSize(){
+    @Override
+    public double getSize(){
         return Math.sqrt(Math.pow(this.nrWidgetsExpl, 2) + Math.pow(this.nrWidgetsObs, 2));
+    }
+
+    @Override
+    public String toBrackedNotation(){
+        return "";
     }
 }
