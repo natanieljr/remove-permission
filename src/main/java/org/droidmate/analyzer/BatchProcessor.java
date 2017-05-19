@@ -51,7 +51,7 @@ class BatchProcessor {
         ReportGenerator reporter = new ReportGenerator();
 
         this.apps.forEach(apk -> {
-            this.analyzer.analyze(apk, eval, reporter);
+            this.analyzer.analyze(apk, cfg.apiPolicy, eval, reporter);
             reporter.generateReport();
         });
     }
