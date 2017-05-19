@@ -65,7 +65,7 @@ class ReportGenerator {
 
         String scenarioFormat = "SCENARIO:\t\t\t%s\n" +
                 "VALID:\t\t\t\t%s\n" +
-                "DISSIMILARITY:\t\t%.6f\n\n" +
+                "DISSIMILARITY:\t\t%.6f\n" +
                 "RESTRICTED APIS:\t%d\n" +
                 "%s" +
                 "WIDGETS:\n" +
