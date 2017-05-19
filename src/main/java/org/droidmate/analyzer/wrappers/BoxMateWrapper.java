@@ -166,16 +166,22 @@ public class BoxMateWrapper {
 
     private void removeCompiledMonitorApkFiles() {
         try {
-            if (Files.exists(this.cfg.droidMateCompiledMonitor))
-                FileUtils.deleteDirectory(this.cfg.droidMateCompiledMonitor.toFile());
-        } catch (IOException e) {
+            if (Files.exists(Paths.get("temp_extracted_resources")))
+                new CommandLineWrapper().execute("find temp_extracted_resources -name '*.apk' -type f -delete");
+            new CommandLineWrapper().execute("find " + cfg.droidMateGradleFileDir.toString() + " -name '*.apk' -type f -delete");
+        }
+        catch (IOException e){
             logger.error(e.getMessage(), e);
         }
     }
 
     private void copyMonitorAPKToDestination() {
         try {
-            // Remove monitor
+            if (Files.exists(cfg.droidMateExtractedRes)){
+                FileUtils.cleanDirectory(cfg.droidMateExtractedRes.toFile());
+                Files.delete(cfg.droidMateExtractedRes);
+            }
+            /*// Remove monitor
             Files.deleteIfExists(this.cfg.droidMateMonitorAPK);
             assert !Files.exists(this.cfg.droidMateMonitorAPK);
             assert Files.exists(this.cfg.droidMateMonitorAPKTmp);
@@ -183,7 +189,7 @@ public class BoxMateWrapper {
             Files.copy(this.cfg.droidMateMonitorAPKTmp, this.cfg.droidMateMonitorAPK,
                     StandardCopyOption.REPLACE_EXISTING);
 
-            assert Files.exists(this.cfg.droidMateMonitorAPK);
+            assert Files.exists(this.cfg.droidMateMonitorAPK);*/
 
         } catch (IOException e) {
             logger.error(e.getMessage(), e);
@@ -227,7 +233,7 @@ public class BoxMateWrapper {
                 .connect();
         try {
             BuildLauncher build = connection.newBuild();
-            build.forTasks(":projects:monitor-generator:buildMonitorApk_api23");
+            build.forTasks("clean", "build");
             build.setStandardOutput(System.out);
             build.run();
         } finally {

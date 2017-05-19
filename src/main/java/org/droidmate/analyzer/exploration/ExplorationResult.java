@@ -47,15 +47,21 @@ public class ExplorationResult implements IExplorationResult {
     private void readStatsFile(Path statsFile) {
         try {
             // First line is header
-            String[] lineData = Files.readAllLines(statsFile).get(1).trim().split("\t");
+            List<String> data = Files.readAllLines(statsFile);
 
-            this.nrWidgetsObs = Integer.parseInt(lineData[5]);
-            this.nrWidgetsExpl = Integer.parseInt(lineData[6]);
+            if ((data.size() > 0) && (data.get(1).trim().contains("\t"))) {
+                String[] lineData = data.get(1).trim().split("\t");
 
-            this.crashed = !lineData[lineData.length - 1].equals("N/A (lack of DeviceException)");
+                this.nrWidgetsObs = Integer.parseInt(lineData[5]);
+                this.nrWidgetsExpl = Integer.parseInt(lineData[6]);
+
+                this.crashed = !lineData[lineData.length - 1].equals("N/A (lack of DeviceException)");
+            }
+            else
+                this.createErrorData();
         } catch (Exception e) {
-            logger.error(e.getMessage(), e);
             this.createErrorData();
+            logger.error(e.getMessage(), e);
         }
     }
 
