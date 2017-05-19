@@ -174,4 +174,14 @@ public class AppUnderTest implements IAppUnderTest {
             this.addScenarios(newScenarios);
         }
     }
+
+    @Override
+    public List<IScenario> getScenarios(){
+        return this.scenarios;
+    }
+
+    @Override
+    public String toString(){
+        return this.apkFile.getFileName().toString();
+    }
 }

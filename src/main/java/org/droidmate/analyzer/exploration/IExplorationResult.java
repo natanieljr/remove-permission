@@ -6,7 +6,7 @@ import java.nio.file.Path;
 import java.util.List;
 
 /**
- * Created by nataniel on 18.05.17.
+ * Processed exploration results
  */
 public interface IExplorationResult {
     Path getExplDir();
@@ -18,4 +18,8 @@ public interface IExplorationResult {
     double getSize();
 
     String toBrackedNotation();
+
+    int getNrWidgetsExplored();
+
+    int getNrWidgetsObserved();
 }

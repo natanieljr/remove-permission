@@ -13,5 +13,7 @@ public interface IEvaluationStrategy {
      * @param result An exploration result
      * @return If the scenario is valid
      */
-    boolean valid(IExplorationResult result);
+    boolean isValid(IExplorationResult result);
+
+    double getDissimilarity(IExplorationResult result);
 }

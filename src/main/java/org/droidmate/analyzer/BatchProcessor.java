@@ -47,7 +47,12 @@ class BatchProcessor {
     void analyze() {
         this.initializeApkList();
 
-        IAppUnderTest apk = this.apps.get(0);
-        this.analyzer.analyze(apk, new EvaluationStrategyBuilder(this.cfg.evaluationType, this.cfg.evaluationThreshold));
+        EvaluationStrategyBuilder eval = new EvaluationStrategyBuilder(this.cfg.evaluationType, this.cfg.evaluationThreshold);
+        ReportGenerator reporter = new ReportGenerator();
+
+        this.apps.forEach(apk -> {
+            this.analyzer.analyze(apk, eval, reporter);
+            reporter.generateReport();
+        });
     }
 }

@@ -9,18 +9,22 @@ import org.droidmate.analyzer.exploration.IScenario;
  */
 @SuppressWarnings("unused")
 public class SimilarExplorationSize extends DidNotCrash {
-    private IExplorationResult groundTruth;
+    private IExplorationResult initialExplRes;
     private double threshold;
 
     SimilarExplorationSize(IScenario groundTruth, double threshold) {
-        this.groundTruth = groundTruth.getResult();
+        this.initialExplRes = groundTruth.getResult();
         this.threshold = threshold;
 
-        assert threshold > 0;
+        assert this.threshold > 0;
+        assert this.initialExplRes != null;
     }
 
-    private double getDifference(IExplorationResult result) {
-        double groundTruthSize = groundTruth.getSize();
+    @Override
+    public double getDissimilarity(IExplorationResult result) {
+        assert result != null;
+
+        double groundTruthSize = initialExplRes.getSize();
         double scenarioSize = result.getSize();
 
         double max = Math.max(groundTruthSize, scenarioSize);
@@ -29,7 +33,7 @@ public class SimilarExplorationSize extends DidNotCrash {
     }
 
     @Override
-    public boolean valid(IExplorationResult result) {
-        return this.getDifference(result) < threshold;
+    public boolean isValid(IExplorationResult result) {
+        return this.getDissimilarity(result) < threshold;
     }
 }

@@ -25,5 +25,9 @@ public interface IScenario {
 
     List<IApi> getExploredApiList();
 
+    List<IApi> getRestrictedApiList();
+
     boolean isValid();
+
+    double getDissimilarity();
 }

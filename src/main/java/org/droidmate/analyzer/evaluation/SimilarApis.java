@@ -31,7 +31,10 @@ public class SimilarApis implements IEvaluationStrategy {
         assert this.initialExplRes != null;
     }
 
-    private double computeDistance(IExplorationResult result){
+    @Override
+    public double getDissimilarity(IExplorationResult result){
+        assert result != null;
+
         BracketStringInputParser parser = new BracketStringInputParser();
         String initialExplBracked = this.initialExplRes.toBrackedNotation();
         String scenarioBracked = result.toBrackedNotation();
@@ -46,12 +49,12 @@ public class SimilarApis implements IEvaluationStrategy {
     }
 
     @Override
-    public boolean valid(IExplorationResult result) {
+    public boolean isValid(IExplorationResult result) {
         int nrApisInitialExpl = this.initialExplRes.getApiList().size();
         int nrApisScenario = result.getApiList().size();
 
         double max = Math.max(nrApisInitialExpl, nrApisScenario);
-        double normalizedDistance = this.computeDistance(result)/max;
+        double normalizedDistance = this.getDissimilarity(result)/max;
         return normalizedDistance < this.threshold;
     }
 }

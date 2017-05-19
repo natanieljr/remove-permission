@@ -27,4 +27,7 @@ public interface IAppUnderTest {
     List<IApi> getInitialMonitoredApiList();
 
     void explore(IExplorationStrategy strategy);
+
+    List<IScenario> getScenarios();
+
 }

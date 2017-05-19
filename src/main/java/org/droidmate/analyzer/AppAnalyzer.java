@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.file.Files;
+import java.util.Date;
 
 /**
  * Experiment
@@ -35,10 +36,14 @@ class AppAnalyzer {
         }
     }
 
-    void analyze(IAppUnderTest app, EvaluationStrategyBuilder evaluatorBuilder) {
+    void analyze(IAppUnderTest app, EvaluationStrategyBuilder evaluatorBuilder, ReportGenerator reporter) {
+        Date startTime = new Date();
         this.initialize();
 
         IExplorationStrategy strategy = new DefaultExplorationStrategy(ApiPolicy.Deny, evaluatorBuilder);
         app.explore(strategy);
+
+        Date endTime = new Date();
+        reporter.addApp(app, startTime, endTime);
     }
 }

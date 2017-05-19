@@ -114,10 +114,16 @@ public class BoxMateWrapper {
     private void cleanDroidmateDirectories() {
         try {
             Path output = Paths.get("output_device1");
-            Files.deleteIfExists(output);
+            if (Files.exists(output)) {
+                FileUtils.cleanDirectory(output.toFile());
+                Files.delete(output);
+            }
 
             Path resources = Paths.get("temp_extracted_resources");
-            Files.deleteIfExists(resources);
+            if (Files.exists(resources)) {
+                FileUtils.cleanDirectory(resources.toFile());
+                Files.delete(resources);
+            }
         }
         catch (IOException e) {
             logger.error(e.getMessage(), e);

@@ -1,7 +1,6 @@
 package org.droidmate.analyzer.evaluation;
 
 import org.droidmate.analyzer.exploration.IExplorationResult;
-import org.droidmate.analyzer.exploration.IScenario;
 
 /**
  * Evaluate the scenario on the basis that it did not crash
@@ -13,7 +12,15 @@ public class DidNotCrash implements IEvaluationStrategy {
     }
 
     @Override
-    public boolean valid(IExplorationResult result) {
+    public boolean isValid(IExplorationResult result) {
         return !result.hasCrashed();
+    }
+
+    @Override
+    public double getDissimilarity(IExplorationResult result) {
+        if (this.isValid(result))
+            return 0;
+        else
+            return 1;
     }
 }

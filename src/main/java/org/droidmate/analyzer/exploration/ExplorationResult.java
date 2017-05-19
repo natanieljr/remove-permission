@@ -12,9 +12,6 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Processed exploration results
- */
 public class ExplorationResult implements IExplorationResult {
     private static final Logger logger = LoggerFactory.getLogger(ExplorationResult.class);
 
@@ -56,8 +53,9 @@ public class ExplorationResult implements IExplorationResult {
             this.nrWidgetsExpl = Integer.parseInt(lineData[6]);
 
             this.crashed = !lineData[lineData.length - 1].equals("N/A (lack of DeviceException)");
-        } catch (IOException e) {
+        } catch (Exception e) {
             logger.error(e.getMessage(), e);
+            this.createErrorData();
         }
     }
 
@@ -151,5 +149,15 @@ public class ExplorationResult implements IExplorationResult {
         b.append("}");
 
         return b.toString();
+    }
+
+    @Override
+    public int getNrWidgetsExplored(){
+        return this.nrWidgetsExpl;
+    }
+
+    @Override
+    public int getNrWidgetsObserved(){
+        return this.nrWidgetsObs;
     }
 }

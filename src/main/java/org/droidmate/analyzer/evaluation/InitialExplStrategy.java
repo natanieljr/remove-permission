@@ -11,7 +11,12 @@ public class InitialExplStrategy implements IEvaluationStrategy {
     }
 
     @Override
-    public boolean valid(IExplorationResult result) {
+    public boolean isValid(IExplorationResult result) {
         return (result != null) && !result.hasCrashed();
+    }
+
+    @Override
+    public double getDissimilarity(IExplorationResult result) {
+        return 0;
     }
 }

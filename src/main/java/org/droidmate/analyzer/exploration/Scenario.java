@@ -249,6 +249,16 @@ public class Scenario implements IScenario {
 
     @Override
     public boolean isValid() {
-        return this.evaluator.valid(this.result);
+        return this.evaluator.isValid(this.result);
+    }
+
+    @Override
+    public List<IApi> getRestrictedApiList(){
+        return this.restrictedApis;
+    }
+
+    @Override
+    public double getDissimilarity(){
+        return this.evaluator.getDissimilarity(result);
     }
 }
