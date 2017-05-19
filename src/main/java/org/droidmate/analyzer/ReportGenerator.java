@@ -130,12 +130,12 @@ class ReportGenerator {
 
         double nrApis = app.getInitialExpl().getExploredApiList().size();
         int nrApisBeforreError = (int) nrApis;
-        int nrApisBlocked = (int) nrApis;
+        int nrApisBlocked = 0;
         String firstErrorStr = "NO ERROR";
         String lastSuccessStr = "NO SUCCESS";
 
         if (firstError != null) {
-            nrApisBeforreError = firstError.getRestrictedApiList().size();
+            nrApisBeforreError = Math.max(firstError.getRestrictedApiList().size() - 1, 0);
             firstErrorStr = firstError.getResult().getExplDir().getParent().getFileName().toString();
         }
 
