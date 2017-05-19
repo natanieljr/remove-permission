@@ -20,10 +20,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-/**
- * Application under evaluation
- */
-public class AppUnderTest {
+public class AppUnderTest implements IAppUnderTest {
     private static final Logger logger = LoggerFactory.getLogger(AppUnderTest.class);
 
     private Configuration cfg;
@@ -66,6 +63,7 @@ public class AppUnderTest {
         assert Files.exists(this.dir);
     }
 
+    @Override
     public Path getApkFile() {
         return this.apkFile;
     }
@@ -84,10 +82,12 @@ public class AppUnderTest {
         return apkMeta;
     }
 
+    @Override
     public Path getDir() {
         return this.dir;
     }
 
+    @Override
     public IScenario getInitialExpl() {
         Optional<IScenario> scenarioStream = this.scenarios.stream()
                 .filter(p -> p.getExplDepth() == 0)
@@ -96,10 +96,12 @@ public class AppUnderTest {
         return scenarioStream.orElse(null);
     }
 
+    @Override
     public int getCurrExplDepth() {
         return this.currExplDepth;
     }
 
+    @Override
     public List<IScenario> getScenarios(int depth) {
         return this.scenarios.stream()
                 .filter(p -> p.getExplDepth() == depth)
@@ -123,6 +125,7 @@ public class AppUnderTest {
         return this.getPendingScenarios().size() > 0;
     }
 
+    @Override
     public String getPackageName() {
         return this.getMeta().getPackageName();
     }
@@ -142,6 +145,7 @@ public class AppUnderTest {
         return initialExpl.getExploredApiList();
     }
 
+    @Override
     public List<IApi> getInitialMonitoredApiList(){
         return this.getInitialApiList().stream()
                 .filter(IApi::hasRestriction)
@@ -149,7 +153,8 @@ public class AppUnderTest {
                 .collect(Collectors.toList());
     }
 
-    void explore(IExplorationStrategy strategy) {
+    @Override
+    public void explore(IExplorationStrategy strategy) {
         // Initial expl
         List<IScenario> initialExpl = strategy.generateScenarios(this);
         this.addScenarios(initialExpl);

@@ -4,7 +4,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import org.apache.commons.io.FileUtils;
-import org.droidmate.analyzer.AppUnderTest;
+import org.droidmate.analyzer.IAppUnderTest;
 import org.droidmate.analyzer.ResourceManager;
 import org.droidmate.analyzer.api.Api;
 import org.droidmate.analyzer.api.IApi;
@@ -34,11 +34,11 @@ public class Scenario implements IScenario {
     private Path dir;
     private Path cfgFile;
     private Path inlinedApk;
-    private AppUnderTest app;
+    private IAppUnderTest app;
     private ApiPolicy policy;
     private IEvaluationStrategy evaluator;
 
-    private Scenario(AppUnderTest app, List<IApi> restrictedApis, int explDepth, ApiPolicy policy,
+    private Scenario(IAppUnderTest app, List<IApi> restrictedApis, int explDepth, ApiPolicy policy,
                      IEvaluationStrategy evaluator) {
         this.app = app;
         this.restrictedApis = restrictedApis;
@@ -47,7 +47,7 @@ public class Scenario implements IScenario {
         this.evaluator = evaluator;
     }
 
-    static Scenario build(AppUnderTest app, List<IApi> restrictedApis, int explDepth, ApiPolicy policy,
+    static Scenario build(IAppUnderTest app, List<IApi> restrictedApis, int explDepth, ApiPolicy policy,
                           IEvaluationStrategy evaluator) {
         if (restrictedApis == null)
             restrictedApis = new ArrayList<>();

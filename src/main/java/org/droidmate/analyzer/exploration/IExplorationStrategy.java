@@ -1,6 +1,6 @@
 package org.droidmate.analyzer.exploration;
 
-import org.droidmate.analyzer.AppUnderTest;
+import org.droidmate.analyzer.IAppUnderTest;
 
 import java.util.List;
 
@@ -13,5 +13,5 @@ public interface IExplorationStrategy {
      * @param app An application to be explored
      * @return List of new scenarios ot be explored. If it is not possible to generate new scenarios, returns an empty list
      */
-    List<IScenario> generateScenarios(AppUnderTest app);
+    List<IScenario> generateScenarios(IAppUnderTest app);
 }

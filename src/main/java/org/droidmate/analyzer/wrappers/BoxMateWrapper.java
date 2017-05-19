@@ -111,12 +111,27 @@ public class BoxMateWrapper {
         assert Files.exists(unpackedDir);
     }
 
+    private void cleanDroidmateDirectories() {
+        try {
+            Path output = Paths.get("output_device1");
+            Files.deleteIfExists(output);
+
+            Path resources = Paths.get("temp_extracted_resources");
+            Files.deleteIfExists(resources);
+        }
+        catch (IOException e) {
+            logger.error(e.getMessage(), e);
+        }
+    }
+
     public IExplorationResult explore(Path apk, boolean isInitialExpl) {
         String fileName = apk.getFileName().toString();
         if (isInitialExpl)
             logger.info(String.format("BoxMate explore: %s", fileName));
         else
             logger.info(String.format("BoxMate explore scenario: %s", apk.getFileName().toString()));
+
+        this.cleanDroidmateDirectories();
 
         try {
             FileUtils.cleanDirectory(this.cfg.workDir.toFile());

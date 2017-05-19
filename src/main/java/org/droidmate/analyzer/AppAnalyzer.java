@@ -35,7 +35,7 @@ class AppAnalyzer {
         }
     }
 
-    void analyze(AppUnderTest app, EvaluationStrategyBuilder evaluatorBuilder) {
+    void analyze(IAppUnderTest app, EvaluationStrategyBuilder evaluatorBuilder) {
         this.initialize();
 
         IExplorationStrategy strategy = new DefaultExplorationStrategy(ApiPolicy.Deny, evaluatorBuilder);

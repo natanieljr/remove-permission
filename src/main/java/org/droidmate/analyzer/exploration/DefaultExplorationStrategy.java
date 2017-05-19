@@ -1,6 +1,6 @@
 package org.droidmate.analyzer.exploration;
 
-import org.droidmate.analyzer.AppUnderTest;
+import org.droidmate.analyzer.IAppUnderTest;
 import org.droidmate.analyzer.api.IApi;
 import org.droidmate.analyzer.evaluation.EvaluationStrategyBuilder;
 import org.droidmate.analyzer.evaluation.IEvaluationStrategy;
@@ -23,7 +23,7 @@ public class DefaultExplorationStrategy implements IExplorationStrategy {
         this.evaluatorBuilder = evaluatorBuilder;
     }
 
-    private List<IScenario> getValidScenarios(AppUnderTest app) {
+    private List<IScenario> getValidScenarios(IAppUnderTest app) {
         return app
                 .getScenarios(app.getCurrExplDepth() - 1)
                 .stream()
@@ -31,12 +31,12 @@ public class DefaultExplorationStrategy implements IExplorationStrategy {
                 .collect(Collectors.toList());
     }
 
-    private IEvaluationStrategy getEvaluationStrategy(AppUnderTest app) {
+    private IEvaluationStrategy getEvaluationStrategy(IAppUnderTest app) {
         IScenario initialExpl = app.getInitialExpl();
         return this.evaluatorBuilder.build(initialExpl);
     }
 
-    private List<IScenario> generateSimpleScenarios(AppUnderTest app) {
+    private List<IScenario> generateSimpleScenarios(IAppUnderTest app) {
         logger.info("Generating simple scenarios");
 
         List<IScenario> scenarios = new ArrayList<>();
@@ -64,7 +64,7 @@ public class DefaultExplorationStrategy implements IExplorationStrategy {
         return scenarios;
     }
 
-    private List<IScenario> generateCompositeScenarios(AppUnderTest app) {
+    private List<IScenario> generateCompositeScenarios(IAppUnderTest app) {
         logger.info("Generating composite scenarios");
 
         List<IScenario> scenarios = new ArrayList<>();
@@ -83,7 +83,7 @@ public class DefaultExplorationStrategy implements IExplorationStrategy {
         return scenarios;
     }
 
-    private List<IScenario> generateInitialExpl(AppUnderTest app){
+    private List<IScenario> generateInitialExpl(IAppUnderTest app){
         Scenario s = Scenario.build(app, null, app.getCurrExplDepth(), this.policy,
                 this.getEvaluationStrategy(app));
         s.initialize();
@@ -91,7 +91,7 @@ public class DefaultExplorationStrategy implements IExplorationStrategy {
     }
 
     @Override
-    public List<IScenario> generateScenarios(AppUnderTest app) {
+    public List<IScenario> generateScenarios(IAppUnderTest app) {
         int currDepth = app.getCurrExplDepth();
         logger.info(String.format("Generating scenarios of depth %d", currDepth));
 

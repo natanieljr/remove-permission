@@ -18,7 +18,7 @@ import java.util.stream.Stream;
 class BatchProcessor {
     private static final Logger logger = LoggerFactory.getLogger(BatchProcessor.class);
 
-    private List<AppUnderTest> apps;
+    private List<IAppUnderTest> apps;
     private Configuration cfg;
     private AppAnalyzer analyzer;
 
@@ -34,7 +34,7 @@ class BatchProcessor {
             Stream<Path> files = Files.list(dirPath);
             files.forEachOrdered(apkPath ->
                     {
-                        AppUnderTest apk = new AppUnderTest(this.cfg, apkPath);
+                        IAppUnderTest apk = new AppUnderTest(this.cfg, apkPath);
                         this.apps.add(apk);
                         logger.debug(apk.getPackageName());
                     }
@@ -47,7 +47,7 @@ class BatchProcessor {
     void analyze() {
         this.initializeApkList();
 
-        AppUnderTest apk = this.apps.get(0);
+        IAppUnderTest apk = this.apps.get(0);
         this.analyzer.analyze(apk, new EvaluationStrategyBuilder(this.cfg.evaluationType, this.cfg.evaluationThreshold));
     }
 }

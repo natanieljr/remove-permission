@@ -1,6 +1,6 @@
 package org.droidmate.analyzer.wrappers;
 
-import org.droidmate.analyzer.AppUnderTest;
+import org.droidmate.analyzer.IAppUnderTest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,7 +17,7 @@ import java.util.List;
 public class AdbWrapper {
     private static final Logger logger = LoggerFactory.getLogger(AdbWrapper.class);
 
-    public int installApk(AppUnderTest apk) {
+    public int installApk(IAppUnderTest apk) {
         logger.info(String.format("ADB INSTALL: %s", apk.getApkFile().getFileName()));
 
         String filePath = apk.getApkFile().toString();
@@ -33,7 +33,7 @@ public class AdbWrapper {
         return 1;
     }
 
-    public int uninstallApk(AppUnderTest apk) {
+    public int uninstallApk(IAppUnderTest apk) {
         String packageName = apk.getPackageName();
         logger.info(String.format("ADB UNINSTALL: %s", packageName));
 
