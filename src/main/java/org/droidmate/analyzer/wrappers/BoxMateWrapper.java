@@ -165,6 +165,7 @@ public class BoxMateWrapper {
     }
 
     private void removeCompiledMonitorApkFiles() {
+        logger.debug("Removing compiled DoridMate monitor to ensure gradle will deploy correctly");
         try {
             if (Files.exists(Paths.get("temp_extracted_resources")))
                 new CommandLineWrapper().execute("find temp_extracted_resources -name '*.apk' -type f -delete");
@@ -201,6 +202,7 @@ public class BoxMateWrapper {
         Path monitoredAPKBak = monitoredAPIs.resolveSibling(monitoredAPIs.getFileName() + ".bak");
 
         if (!Files.exists(monitoredAPKBak)) {
+            logger.debug("Backing up original monitored_apis.json file");
             try {
                 Files.copy(monitoredAPIs, monitoredAPKBak, StandardCopyOption.REPLACE_EXISTING);
             } catch (IOException e) {
@@ -228,13 +230,15 @@ public class BoxMateWrapper {
         this.removeCompiledMonitorApkFiles();
         this.deployNewMonitoredApisFile(newMonitoredApisFile);
 
+        logger.info("Recompiling DroidMate (gradlew clean build)");
         ProjectConnection connection = GradleConnector.newConnector()
                 .forProjectDirectory(this.cfg.droidMateGradleFileDir.toFile())
                 .connect();
         try {
             BuildLauncher build = connection.newBuild();
             build.forTasks("clean", "build");
-            build.setStandardOutput(System.out);
+            build.setStandardOutput(null);
+            //build.setStandardOutput(System.out);
             build.run();
         } finally {
             connection.close();
