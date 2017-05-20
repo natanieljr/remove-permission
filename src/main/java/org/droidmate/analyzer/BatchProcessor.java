@@ -32,7 +32,7 @@ class BatchProcessor {
         Path dirPath = Paths.get(this.cfg.apkInputDir);
         try {
             Stream<Path> files = Files.list(dirPath);
-            files.forEachOrdered(apkPath ->
+            files.filter(p -> p.getFileName().toString().contains(".apk")).forEachOrdered(apkPath ->
                     {
                         IAppUnderTest apk = new AppUnderTest(this.cfg, apkPath);
                         this.apps.add(apk);
@@ -51,6 +51,7 @@ class BatchProcessor {
         ReportGenerator reporter = new ReportGenerator();
 
         this.apps.forEach(apk -> {
+            logger.info(String.format("Executing app %s", apk.toString()));
             this.analyzer.analyze(apk, cfg.apiPolicy, eval, reporter);
             reporter.generateReport();
         });
