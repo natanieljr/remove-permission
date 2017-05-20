@@ -49,7 +49,7 @@ public class ExplorationResult implements IExplorationResult {
             // First line is header
             List<String> data = Files.readAllLines(statsFile);
 
-            if ((data.size() > 0) && (data.get(1).trim().contains("\t"))) {
+            if ((data.size() > 1) && (data.get(1).trim().contains("\t"))) {
                 String[] lineData = data.get(1).trim().split("\t");
 
                 this.nrWidgetsObs = Integer.parseInt(lineData[5]);
