@@ -25,6 +25,7 @@ import java.util.stream.Stream;
 public class BoxMateWrapper {
     private static final Logger logger = LoggerFactory.getLogger(BoxMateWrapper.class);
 
+    private AdbWrapper adbWrapper = new AdbWrapper();
     private Configuration cfg;
 
     public BoxMateWrapper(Configuration cfg) {
@@ -143,6 +144,10 @@ public class BoxMateWrapper {
             FileUtils.cleanDirectory(this.cfg.workDir.toFile());
             Path apkToExplore = this.copyApkToWorkDir(apk);
 
+            // Reboot and unlock the device to ensure all tests will be correctly executed
+            // Due to exceptions generated form the monitor, sometimes the devices crashes
+            this.adbWrapper.rebootAndUnlock();
+
             List<String> args = new ArrayList<>();
             args.add(BoxMateConsts.ARGS_API23);
             args.add(BoxMateConsts.ARGS_RESET);
@@ -182,16 +187,6 @@ public class BoxMateWrapper {
                 FileUtils.cleanDirectory(cfg.droidMateExtractedRes.toFile());
                 Files.delete(cfg.droidMateExtractedRes);
             }
-            /*// Remove monitor
-            Files.deleteIfExists(this.cfg.droidMateMonitorAPK);
-            assert !Files.exists(this.cfg.droidMateMonitorAPK);
-            assert Files.exists(this.cfg.droidMateMonitorAPKTmp);
-
-            Files.copy(this.cfg.droidMateMonitorAPKTmp, this.cfg.droidMateMonitorAPK,
-                    StandardCopyOption.REPLACE_EXISTING);
-
-            assert Files.exists(this.cfg.droidMateMonitorAPK);*/
-
         } catch (IOException e) {
             logger.error(e.getMessage(), e);
         }
