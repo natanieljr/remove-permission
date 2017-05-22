@@ -1,20 +1,45 @@
-android.app.ActivityManager->getRunningTasks(int)
 android.app.ActivityManager->getRecentTasks(int,int)
-android.content.ContentResolver->query(android.net.Uri,java.lang.String[],java.lang.String,java.lang.String[],java.lang.String,android.os.CancellationSignal)	content://call_log/calls
-android.content.ContentResolver->query(android.net.Uri,java.lang.String[],java.lang.String,java.lang.String[],java.lang.String,android.os.CancellationSignal)	content://com.android.contacts/contacts
-android.content.ContentResolver->query(android.net.Uri,java.lang.String[],java.lang.String,java.lang.String[],java.lang.String,android.os.CancellationSignal)	content://com.android.contacts/contacts/1/photo
-android.content.ContentResolver->query(android.net.Uri,java.lang.String[],java.lang.String,java.lang.String[],java.lang.String,android.os.CancellationSignal)	content://com.android.contacts/data
-android.content.ContentResolver->query(android.net.Uri,java.lang.String[],java.lang.String,java.lang.String[],java.lang.String,android.os.CancellationSignal)	content://com.android.contacts/data/postals
-android.content.ContentResolver->query(android.net.Uri,java.lang.String[],java.lang.String,java.lang.String[],java.lang.String,android.os.CancellationSignal)	content://com.android.contacts/data/phones
-android.content.ContentResolver->query(android.net.Uri,java.lang.String[],java.lang.String,java.lang.String[],java.lang.String,android.os.CancellationSignal)	content://com.android.contacts/profile
-android.content.ContentResolver->query(android.net.Uri,java.lang.String[],java.lang.String,java.lang.String[],java.lang.String,android.os.CancellationSignal)	content://com.android.contacts/profile/photo
-android.content.ContentResolver->query(android.net.Uri,java.lang.String[],java.lang.String,java.lang.String[],java.lang.String,android.os.CancellationSignal)	content://sms
+android.app.ActivityManager->getRunningTasks(int)
 android.hardware.Camera->open(int)
-android.location.LocationManager->getBestProvider(android.location.Criteria,boolean)
+android.location.LocationManager->addGpsStatusListener(android.location.GpsStatus.Listener)
+android.location.LocationManager->addNmeaListener(android.location.GpsStatus.NmeaListener)
+android.location.LocationManager->addProximityAlert(double,double,float,long,android.app.PendingIntent)
 android.location.LocationManager->getLastKnownLocation(java.lang.String)
-android.location.LocationManager->getProviders(boolean)
-android.location.LocationManager->isProviderEnabled(java.lang.String)
+android.location.LocationManager->requestLocationUpdates(long,float,android.location.Criteria,android.app.PendingIntent)
+android.location.LocationManager->requestLocationUpdates(long,float,android.location.Criteria,android.location.LocationListener,android.os.Looper)
+android.location.LocationManager->requestLocationUpdates(java.lang.String,long,float,android.app.PendingIntent)
+android.location.LocationManager->requestLocationUpdates(java.lang.String,long,float,android.location.LocationListener)
+android.location.LocationManager->requestLocationUpdates(java.lang.String,long,float,android.location.LocationListener,android.os.Looper)
+android.location.LocationManager->requestSingleUpdate(android.location.Criteria,android.app.PendingIntent)
+android.location.LocationManager->requestSingleUpdate(android.location.Criteria,android.location.LocationListener,android.os.Looper)
+android.location.LocationManager->requestSingleUpdate(java.lang.String,android.app.PendingIntent)
+android.location.LocationManager->requestSingleUpdate(java.lang.String,android.location.LocationListener,android.os.Looper)
+android.media.AudioManager->setBluetoothScoOn(boolean)
+android.media.AudioManager->startBluetoothSco()
+android.media.AudioRecord-><init>(int,int,int,int,int)
+android.net.wifi.WifiManager->addNetwork(android.net.wifi.WifiConfiguration)
+android.net.wifi.WifiManager->pingSupplicant()
+android.net.wifi.WifiManager->removeNetwork(int)
+android.net.wifi.WifiManager->saveConfiguration()
+android.net.wifi.WifiManager->setWifiApEnabled(android.net.wifi.WifiConfiguration,boolean)
+android.net.wifi.WifiManager->setWifiEnabled(boolean)
+android.net.wifi.WifiManager->startScan()
+android.telephony.TelephonyManager->getCellLocation()
 android.telephony.TelephonyManager->getDeviceId()
+android.telephony.TelephonyManager->getDeviceSoftwareVersion()
+android.telephony.TelephonyManager->getLine1Number()
+android.telephony.TelephonyManager->getNeighboringCellInfo()
+android.telephony.TelephonyManager->getSimSerialNumber()
+android.telephony.TelephonyManager->getSubscriberId()
+android.telephony.TelephonyManager->getVoiceMailAlphaTag()
+android.telephony.TelephonyManager->getVoiceMailNumber()
+android.telephony.TelephonyManager->listen(android.telephony.PhoneStateListener,int)
 java.net.Socket->connect(java.net.SocketAddress,int)
 java.net.URL->openConnection()
+java.net.URL->openConnection(java.net.Proxy)
 org.apache.http.impl.client.AbstractHttpClient->execute(org.apache.http.HttpHost,org.apache.http.HttpRequest,org.apache.http.protocol.HttpContext)
+android.content.ContentResolver->query(android.net.Uri,java.lang.String[],java.lang.String,java.lang.String[],java.lang.String,android.os.CancellationSignal)	content://call_log/calls
+android.content.ContentResolver->query(android.net.Uri,java.lang.String[],java.lang.String,java.lang.String[],java.lang.String,android.os.CancellationSignal)	content://com.android.contacts/contacts
+android.content.ContentResolver->query(android.net.Uri,java.lang.String[],java.lang.String,java.lang.String[],java.lang.String,android.os.CancellationSignal)	content://com.android.contacts/data
+android.content.ContentResolver->query(android.net.Uri,java.lang.String[],java.lang.String,java.lang.String[],java.lang.String,android.os.CancellationSignal)	content://com.android.contacts/profile
+android.content.ContentResolver->query(android.net.Uri,java.lang.String[],java.lang.String,java.lang.String[],java.lang.String,android.os.CancellationSignal)	content://sms
