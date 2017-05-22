@@ -9,5 +9,5 @@ class AdbConsts {
     // Returns Parcel(00000000 00000000) if locked and Parcel(00000000 00000001) if unlocked
     static final String CHECK_LOCKED = "adb shell service call power 12";
 
-    static final int REBOOT_TIME = 60 * 1000; // ms
+    static final int REBOOT_TIME = 50 * 1000; // ms
 }
