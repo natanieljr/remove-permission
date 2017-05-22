@@ -17,10 +17,17 @@ public class DefaultExplorationStrategy implements IExplorationStrategy {
     private static final Logger logger = LoggerFactory.getLogger(DefaultExplorationStrategy.class);
     private ApiPolicy policy;
     private EvaluationStrategyBuilder evaluatorBuilder;
+    private ScenarioBuilder scenarioBuilder;
 
-    public DefaultExplorationStrategy(ApiPolicy policy, EvaluationStrategyBuilder evaluatorBuilder) {
+    public DefaultExplorationStrategy(ApiPolicy policy, EvaluationStrategyBuilder evaluatorBuilder,
+                                      ScenarioBuilder scenarioBuilder) {
         this.policy = policy;
         this.evaluatorBuilder = evaluatorBuilder;
+        this.scenarioBuilder = scenarioBuilder;
+
+        assert this.policy != null;
+        assert this.evaluatorBuilder != null;
+        assert this.scenarioBuilder != null;
     }
 
     private List<IScenario> getValidScenarios(IAppUnderTest app) {
@@ -49,7 +56,7 @@ public class DefaultExplorationStrategy implements IExplorationStrategy {
 
             apiStream.forEach(api ->
             {
-                Scenario scenario = Scenario.build(app, Collections.singletonList(api), app.getCurrExplDepth(),
+                IScenario scenario = this.scenarioBuilder.build(app, Collections.singletonList(api), app.getCurrExplDepth(),
                         this.policy, this.getEvaluationStrategy(app));
 
                 // Somehow, the distinct operation of the stream class does not work and
@@ -73,7 +80,8 @@ public class DefaultExplorationStrategy implements IExplorationStrategy {
         for(IScenario s1 : lastScenarios)
             for(IScenario s2 : lastScenarios)
                 if (!s1.equals(s2)){
-                    Scenario newScenario = Scenario.build(s1, s2, app.getCurrExplDepth());
+                    IScenario newScenario = this.scenarioBuilder.build(s1, s2, app, app.getCurrExplDepth(), this.policy,
+                            this.getEvaluationStrategy(app));
 
                     if (!scenarios.contains(newScenario)) {
                         newScenario.initialize();
@@ -84,7 +92,7 @@ public class DefaultExplorationStrategy implements IExplorationStrategy {
     }
 
     private List<IScenario> generateInitialExpl(IAppUnderTest app){
-        Scenario s = Scenario.build(app, null, app.getCurrExplDepth(), this.policy,
+        IScenario s = this.scenarioBuilder.build(app, null, app.getCurrExplDepth(), this.policy,
                 this.getEvaluationStrategy(app));
         s.initialize();
         return Collections.singletonList(s);

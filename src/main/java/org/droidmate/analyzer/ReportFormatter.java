@@ -7,10 +7,11 @@ import java.util.Date;
 import java.util.List;
 
 /**
- * Created by nataniel on 19.05.17.
+ * Format template for the report
  */
 public class ReportFormatter {
-    private static SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
+    private static final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
+
     static String formatApiList(List<IApi> apis){
         StringBuilder b = new StringBuilder();
         apis.forEach(p -> b.append(String.format("\t%s\n", p.toString())));

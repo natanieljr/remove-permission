@@ -184,4 +184,18 @@ public class AppUnderTest implements IAppUnderTest {
     public String toString(){
         return this.apkFile.getFileName().toString();
     }
+
+    @Override
+    public List<IScenario> getSuccessfulScenarios(){
+        return this.scenarios.stream()
+                .filter(IScenario::isValid)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<IScenario> getFailScenarios(){
+        return this.scenarios.stream()
+                .filter(p -> !p.isValid())
+                .collect(Collectors.toList());
+    }
 }

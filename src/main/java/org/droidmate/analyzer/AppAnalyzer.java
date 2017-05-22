@@ -36,11 +36,12 @@ class AppAnalyzer {
         }
     }
 
-    void analyze(IAppUnderTest app, ApiPolicy policy, EvaluationStrategyBuilder evaluatorBuilder, ReportGenerator reporter) {
+    void analyze(IAppUnderTest app, ReportGenerator reporter) {
         Date startTime = new Date();
         this.initialize();
 
-        IExplorationStrategy strategy = new DefaultExplorationStrategy(policy, evaluatorBuilder);
+        IExplorationStrategy strategy = new DefaultExplorationStrategy(cfg.apiPolicy, cfg.evalStrategyBuilder,
+                cfg.scenarioBuilder);
         app.explore(strategy);
 
         Date endTime = new Date();

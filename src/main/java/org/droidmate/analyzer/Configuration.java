@@ -1,6 +1,8 @@
 package org.droidmate.analyzer;
 
+import org.droidmate.analyzer.evaluation.EvaluationStrategyBuilder;
 import org.droidmate.analyzer.evaluation.EvaluationType;
+import org.droidmate.analyzer.exploration.ScenarioBuilder;
 import org.droidmate.apis.ApiPolicy;
 
 import java.nio.file.Path;
@@ -14,9 +16,12 @@ public class Configuration {
     String apkInputDir = "/users/nataniel/Documents/saarland/repositories/remove-permission/apks";
 
     // Experiment configuration
-    EvaluationType evaluationType   = EvaluationType.SimilarApis;
-    double evaluationThreshold      = 0.1;
-    ApiPolicy apiPolicy             = ApiPolicy.Mock;
+    private EvaluationType evaluationType           = EvaluationType.SimilarApis;
+    private double evaluationThreshold              = 0.1;
+    ApiPolicy apiPolicy                             = ApiPolicy.Mock;
+    ScenarioBuilder scenarioBuilder                 = new ScenarioBuilder();
+    EvaluationStrategyBuilder evalStrategyBuilder   = new EvaluationStrategyBuilder(this.evaluationType,
+            this.evaluationThreshold);
 
     // DroidMate location
     private Path droidMateDir = Paths.get("/users/nataniel/Documents/saarland/repositories/droidmate/");
@@ -24,7 +29,7 @@ public class Configuration {
     // INternal droidmate related variables
     public Path droidMateGradleFileDir = Paths.get(droidMateDir.toString(), "dev/droidmate");
     public Path droidMateMonitoredApis = Paths.get(droidMateGradleFileDir.toString(), "projects/resources/monitored_apis.json");
-    public Path droidMateExtractedRes = Paths.get("temp_extracted_resources");
+    public Path droidMateExtractedRes = Paths.get(droidMateGradleFileDir.toString(),"temp_extracted_resources");
 
     // Experiment structure
     Path dataDir = Paths.get("data");

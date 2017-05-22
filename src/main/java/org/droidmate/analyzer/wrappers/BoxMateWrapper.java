@@ -125,6 +125,8 @@ public class BoxMateWrapper {
                 FileUtils.cleanDirectory(resources.toFile());
                 Files.delete(resources);
             }
+
+            FileUtils.copyDirectory(cfg.droidMateExtractedRes.toFile(), resources.toFile());
         }
         catch (IOException e) {
             logger.error(e.getMessage(), e);
@@ -173,21 +175,10 @@ public class BoxMateWrapper {
         logger.debug("Removing compiled DoridMate monitor to ensure gradle will deploy correctly");
         try {
             if (Files.exists(Paths.get("temp_extracted_resources")))
-                new CommandLineWrapper().execute("find temp_extracted_resources -name '*.apk' -type f -delete");
-            new CommandLineWrapper().execute("find " + cfg.droidMateGradleFileDir.toString() + " -name '*.apk' -type f -delete");
+                new CommandLineWrapper().execute("find temp_extracted_resources -name '*onitor*.apk' -type f -delete");
+            new CommandLineWrapper().execute("find " + cfg.droidMateGradleFileDir.toString() + " -name '*onitor*.apk' -type f -delete");
         }
         catch (IOException e){
-            logger.error(e.getMessage(), e);
-        }
-    }
-
-    private void copyMonitorAPKToDestination() {
-        try {
-            if (Files.exists(cfg.droidMateExtractedRes)){
-                FileUtils.cleanDirectory(cfg.droidMateExtractedRes.toFile());
-                Files.delete(cfg.droidMateExtractedRes);
-            }
-        } catch (IOException e) {
             logger.error(e.getMessage(), e);
         }
     }
@@ -238,7 +229,5 @@ public class BoxMateWrapper {
         } finally {
             connection.close();
         }
-
-        this.copyMonitorAPKToDestination();
     }
 }

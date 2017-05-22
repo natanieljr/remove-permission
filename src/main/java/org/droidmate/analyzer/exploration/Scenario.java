@@ -38,7 +38,7 @@ public class Scenario implements IScenario {
     private ApiPolicy policy;
     private IEvaluationStrategy evaluator;
 
-    private Scenario(IAppUnderTest app, List<IApi> restrictedApis, int explDepth, ApiPolicy policy,
+    Scenario(IAppUnderTest app, List<IApi> restrictedApis, int explDepth, ApiPolicy policy,
                      IEvaluationStrategy evaluator) {
         this.app = app;
         this.restrictedApis = restrictedApis;
@@ -47,32 +47,9 @@ public class Scenario implements IScenario {
         this.evaluator = evaluator;
     }
 
-    static Scenario build(IAppUnderTest app, List<IApi> restrictedApis, int explDepth, ApiPolicy policy,
-                          IEvaluationStrategy evaluator) {
-        if (restrictedApis == null)
-            restrictedApis = new ArrayList<>();
-
-        return new Scenario(app, restrictedApis, explDepth, policy, evaluator);
-    }
-
-    static Scenario build(IScenario s1, IScenario s2, int explDepth) {
-        List<IApi> restrictedApis = new ArrayList<>();
-        Scenario scenario1 = (Scenario)s1;
-        restrictedApis.addAll(scenario1.restrictedApis);
-
-        for(IApi api : ((Scenario)s2).restrictedApis)
-            if (!restrictedApis.contains(api))
-                restrictedApis.add(api);
-
-        restrictedApis.sort(Comparator.comparing(IApi::toString));
-
-        return Scenario.build(scenario1.app, restrictedApis, explDepth, scenario1.policy, scenario1.evaluator);
-    }
-
     private void applyRestriction(JsonObject api, IApi restriction) {
         if (restriction.getURI().length() > 0) {
-            // Currently the URIs are called "uri", so no fancy logic was developed
-            String newRestriction = String.format("%s.toString().equals(\"%s\")",
+            String newRestriction = String.format("%s.toString().contains(\"%s\")",
                     restriction.getURIParamName(), restriction.getURI());
 
             String currRestriction = api.get("customPolicyConstraint").getAsString();
@@ -261,4 +238,5 @@ public class Scenario implements IScenario {
     public double getDissimilarity(){
         return this.evaluator.getDissimilarity(result);
     }
+
 }

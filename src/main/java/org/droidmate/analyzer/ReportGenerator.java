@@ -40,12 +40,14 @@ class ReportGenerator {
 
         List<IScenario> scenarios = app.getScenarios();
         int nrScenarios = scenarios.size();
-        int nrScenariosSucc = (int)scenarios.stream().filter(IScenario::isValid).count();
-        int nrScenariosFail = nrScenarios - nrScenariosSucc;
+        int nrScenariosSucc = app.getSuccessfulScenarios().size();
+        int nrScenariosFail = app.getFailScenarios().size();
+        int nrApis = app.getInitialMonitoredApiList().size();
 
         String headerFormat = "APP:\t\t%s\n" +
                 "START:\t\t%s\n" +
                 "END:\t\t%s\n" +
+                "APIS:\t\t%d\n" +
                 "SCENARIOS:\t%d\n" +
                 "  SUCCESS:\t%d\n" +
                 "  FAIL:\t\t%d\n\n\n";
@@ -54,6 +56,7 @@ class ReportGenerator {
                              app.toString(),
                              ReportFormatter.formatDate(start),
                              ReportFormatter.formatDate(end),
+                             nrApis,
                              nrScenarios,
                              nrScenariosSucc,
                              nrScenariosFail);
@@ -66,11 +69,11 @@ class ReportGenerator {
         String scenarioFormat = "SCENARIO:\t\t\t%s\n" +
                 "VALID:\t\t\t\t%s\n" +
                 "DISSIMILARITY:\t\t%.6f\n" +
-                "RESTRICTED APIS:\t%d\n" +
-                "%s" +
                 "WIDGETS:\n" +
                 "  OBSERVED:\t\t\t%d\n" +
                 "  EXPLORED:\t\t\t%d\n" +
+                "RESTRICTED APIS:\t%d\n" +
+                "%s" +
                 "EXPLORED APIS:\n" +
                 "%s\n";
 
@@ -91,10 +94,10 @@ class ReportGenerator {
                     dirName,
                     p.isValid() + "",
                     p.getDissimilarity(),
-                    restricted.size(),
-                    restrictedStr,
                     nrWidgetsObs,
                     nrWidgetsExpl,
+                    restricted.size(),
+                    restrictedStr,
                     exploredStr
                     ));
         });
@@ -128,7 +131,7 @@ class ReportGenerator {
             }
         }
 
-        double nrApis = app.getInitialExpl().getExploredApiList().size();
+        double nrApis = app.getInitialMonitoredApiList().size();
         int nrApisBeforreError = (int) nrApis;
         int nrApisBlocked = 0;
         String firstErrorStr = "NO ERROR";

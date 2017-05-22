@@ -30,4 +30,7 @@ public interface IAppUnderTest {
 
     List<IScenario> getScenarios();
 
+    List<IScenario> getSuccessfulScenarios();
+
+    List<IScenario> getFailScenarios();
 }
