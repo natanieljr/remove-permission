@@ -19,7 +19,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -56,7 +55,7 @@ public class Scenario implements IScenario {
 
             // is already restricted, add extra condition
             if (currRestriction.length() > 0)
-                currRestriction = String.format("(%s) && (%s)", currRestriction, newRestriction);
+                currRestriction = String.format("(%s) || (%s)", currRestriction, newRestriction);
             else
                 currRestriction = newRestriction;
 
