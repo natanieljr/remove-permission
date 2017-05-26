@@ -54,7 +54,7 @@ public class BoxMateWrapper {
     }
 
     private Path copyApkToWorkDir(Path src) {
-        Path dst = Paths.get(this.cfg.workDir.toString(), src.getFileName().toString());
+        Path dst = this.cfg.workDir.resolve(src.getFileName());
 
         try {
             Files.copy(src, dst);
@@ -123,7 +123,7 @@ public class BoxMateWrapper {
                         explDir.toAbsolutePath().toString())};
         this.runBoxMate(args);
 
-        Path unpackedDir = Paths.get(explDir.toString(), "raw_data");
+        Path unpackedDir = explDir.resolve("raw_data");
         assert Files.exists(unpackedDir);
     }
 
@@ -141,7 +141,7 @@ public class BoxMateWrapper {
     }
 
     private void deployPoliciesFile(Path policiesFile){
-        Path dst = Paths.get(this.cfg.extractedResDir.toString(), BoxMateConsts.FILE_API_POLICIES);
+        Path dst = this.cfg.extractedResDir.resolve(BoxMateConsts.FILE_API_POLICIES);
         try{
             Files.deleteIfExists(dst);
             assert !Files.exists(dst);

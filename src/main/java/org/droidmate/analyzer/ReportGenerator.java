@@ -11,7 +11,6 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -173,7 +172,7 @@ class ReportGenerator {
 
         String fileData = String.format("%s\n%s\n%s", header, scenarios, summary);
         IAppUnderTest app = experiment.getLeft();
-        Path reportFile = Paths.get(app.getDir().toString(), "report.txt");
+        Path reportFile = app.getDir().resolve("report.txt");
         try{
             Files.write(reportFile, fileData.getBytes());
         }

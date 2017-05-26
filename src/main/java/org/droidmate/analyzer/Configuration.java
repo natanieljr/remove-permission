@@ -25,6 +25,6 @@ public class Configuration {
 
     // Experiment structure
     Path dataDir = Paths.get("data");
-    public Path workDir = Paths.get(dataDir.toString(), "tmp");
+    public Path workDir = dataDir.resolve("tmp");
     public Path extractedResDir = Paths.get("temp_extracted_resources");
 }

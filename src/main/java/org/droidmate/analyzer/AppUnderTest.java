@@ -13,7 +13,6 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -51,7 +50,7 @@ public class AppUnderTest implements IAppUnderTest {
     private void createExperimentDir() {
         ApkMeta meta = this.getMeta();
         String dirName = String.format("%s_%s", meta.getPackageName(), meta.getVersionName());
-        this.dir = Paths.get(this.cfg.dataDir.toString(), dirName);
+        this.dir = this.cfg.dataDir.resolve(dirName);
 
         try {
             Files.createDirectories(this.dir);

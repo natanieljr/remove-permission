@@ -1,12 +1,7 @@
 package org.droidmate.analyzer.exploration;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import org.apache.commons.io.FileUtils;
 import org.droidmate.analyzer.IAppUnderTest;
-import org.droidmate.analyzer.ResourceManager;
-import org.droidmate.analyzer.api.Api;
 import org.droidmate.analyzer.api.IApi;
 import org.droidmate.analyzer.evaluation.IEvaluationStrategy;
 import org.droidmate.analyzer.wrappers.BoxMateConsts;
@@ -17,7 +12,6 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.List;
@@ -70,7 +64,7 @@ public class Scenario implements IScenario {
         restrictedApis.forEach(p ->
                 data.append(String.format("%s\t%s\n", p.toString(), this.policy.toString())));
 
-        Path res = Paths.get(this.getDir().toString(), BoxMateConsts.FILE_API_POLICIES);
+        Path res = this.getDir().resolve(BoxMateConsts.FILE_API_POLICIES);
         try{
             Files.write(res, data.toString().getBytes());
         }
@@ -103,7 +97,7 @@ public class Scenario implements IScenario {
 
     private Path copyExplOutputToDir(IExplorationResult res) {
         Path src = res.getExplDir();
-        Path dst = Paths.get(this.getDir().toString(), "output_device1");
+        Path dst = this.getDir().resolve("output_device1");
 
         try {
             if (Files.exists(dst))
@@ -138,7 +132,7 @@ public class Scenario implements IScenario {
         else {
 
             String fileName = cfgFile.getFileName().toString();
-            this.cfgFile = Paths.get(this.getDir().toString(), fileName);
+            this.cfgFile = this.getDir().resolve(fileName);
 
             try {
                 Files.copy(cfgFile, this.cfgFile, StandardCopyOption.REPLACE_EXISTING);
@@ -159,7 +153,7 @@ public class Scenario implements IScenario {
     @Override
     public void setInlinedApk(Path inlinedApk) {
         String fileName = inlinedApk.getFileName().toString();
-        this.inlinedApk = Paths.get(this.getDir().toString(), fileName);
+        this.inlinedApk = this.getDir().resolve(fileName);
 
         try {
             Files.copy(inlinedApk, this.inlinedApk, StandardCopyOption.REPLACE_EXISTING);

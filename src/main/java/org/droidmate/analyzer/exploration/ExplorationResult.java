@@ -8,7 +8,6 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -41,7 +40,7 @@ public class ExplorationResult implements IExplorationResult {
     }
 
     private Path getReportFolder() {
-        return Paths.get(this.explDir.toString(), "report");
+        return this.explDir.resolve("report");
     }
 
     private void readStatsFile(Path statsFile) {
@@ -72,7 +71,7 @@ public class ExplorationResult implements IExplorationResult {
     }
 
     private void tryReadStats() {
-        Path statsFile = Paths.get(this.getReportFolder().toString(), "aggregate_stats.txt");
+        Path statsFile = this.getReportFolder().resolve("aggregate_stats.txt");
 
         if (!Files.exists(statsFile))
             this.createErrorData();
@@ -86,7 +85,7 @@ public class ExplorationResult implements IExplorationResult {
     }
 
     private void readSummary() {
-        Path summaryFile = Paths.get(this.getReportFolder().toString(), "summary.txt");
+        Path summaryFile = this.getReportFolder().resolve("summary.txt");
 
         if (!Files.exists(summaryFile)) {
             this.createErrorData();
