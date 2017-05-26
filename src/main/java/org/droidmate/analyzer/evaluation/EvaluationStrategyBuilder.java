@@ -29,6 +29,8 @@ public class EvaluationStrategyBuilder {
                 return new SimilarExplorationSize(initialExpl, this.threshold);
             case SimilarApis:
                 return new SimilarApis(initialExpl, this.threshold);
+            case AwaysValid:
+                return new AwaysValid(initialExpl, this.threshold);
             default:
                 throw new NotImplementedException("Evaluation type required");
         }

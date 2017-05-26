@@ -6,5 +6,6 @@ package org.droidmate.analyzer.evaluation;
 public enum EvaluationType {
     DidNotCrash,
     SimilarSize,
-    SimilarApis
+    SimilarApis,
+    AwaysValid
 }
