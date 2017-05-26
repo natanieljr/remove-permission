@@ -16,7 +16,7 @@ public class Configuration {
     String apkInputDir = "/users/nataniel/Documents/saarland/repositories/remove-permission/apks";
 
     // Experiment configuration
-    private EvaluationType evaluationType           = EvaluationType.SimilarApis;
+    private EvaluationType evaluationType           = EvaluationType.AwaysValid;
     private double evaluationThreshold              = 0.1;
     ApiPolicy apiPolicy                             = ApiPolicy.Mock;
     ScenarioBuilder scenarioBuilder                 = new ScenarioBuilder();
