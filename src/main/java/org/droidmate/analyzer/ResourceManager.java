@@ -82,8 +82,4 @@ public class ResourceManager {
 
         return null;
     }
-
-    public Path getDefaultMonitoredApisFile() {
-        return this.loadResourceFile("monitored_apis.json");
-    }
 }

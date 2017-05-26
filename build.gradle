@@ -19,10 +19,6 @@ dependencies {
   compile 'org.droidmate:droidmate:dev'
   compile 'at.unisalzburg:apted:1.0'
 
-  compile "org.gradle:gradle-tooling-api:3.5"
-  // The tooling API need an SLF4J implementation available at runtime, replace this with any other implementation
-  //runtime 'org.slf4j:slf4j-simple:1.7.10'
-
   compile 'com.google.code.gson:gson:2.3.1'
   compile 'com.thoughtworks.xstream:xstream:1.4.9'
   compile 'com.google.guava:guava:19.0'

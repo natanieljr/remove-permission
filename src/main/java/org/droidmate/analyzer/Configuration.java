@@ -23,15 +23,8 @@ public class Configuration {
     EvaluationStrategyBuilder evalStrategyBuilder   = new EvaluationStrategyBuilder(this.evaluationType,
             this.evaluationThreshold);
 
-    // DroidMate location
-    private Path droidMateDir = Paths.get("/users/nataniel/Documents/saarland/repositories/droidmate/");
-
-    // INternal droidmate related variables
-    public Path droidMateGradleFileDir = Paths.get(droidMateDir.toString(), "dev/droidmate");
-    public Path droidMateMonitoredApis = Paths.get(droidMateGradleFileDir.toString(), "projects/resources/monitored_apis.json");
-    public Path droidMateExtractedRes = Paths.get(droidMateGradleFileDir.toString(),"temp_extracted_resources");
-
     // Experiment structure
     Path dataDir = Paths.get("data");
     public Path workDir = Paths.get(dataDir.toString(), "tmp");
+    public Path extractedResDir = Paths.get("temp_extracted_resources");
 }

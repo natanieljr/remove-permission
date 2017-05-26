@@ -132,7 +132,7 @@ public class AppUnderTest implements IAppUnderTest {
 
     private void inline(IScenario scenario) {
         // Inline app
-        Path inlinedFile = boxMate.inlineApp(this.getApkFile(), scenario.getCfgFile());
+        Path inlinedFile = boxMate.inlineApp(this.getApkFile());
         scenario.setInlinedApk(inlinedFile);
         assert scenario.getInlinedApk() != null;
     }
@@ -164,7 +164,7 @@ public class AppUnderTest implements IAppUnderTest {
                 this.inline(scenario);
                 IExplorationResult explRes;
 
-                explRes = boxMate.explore(scenario.getInlinedApk(), scenario.getExplDepth() == 0);
+                explRes = boxMate.explore(scenario.getInlinedApk(), scenario.getCfgFile(), scenario.getExplDepth() == 0);
                 scenario.setResult(explRes);
                 assert (scenario.getResult() != null) && (Files.exists(scenario.getResult().getExplDir()));
             }

@@ -116,7 +116,7 @@ public class Api implements IApi {
     @Override
     public String toString() {
         String paramStr = String.join(",", this.params);
-        return String.format("%s->%s(%s) %s", this.className, this.methodName, paramStr, this.uri);
+        return String.format("%s->%s(%s)\t%s", this.className, this.methodName, paramStr, this.uri);
     }
 
     @Override

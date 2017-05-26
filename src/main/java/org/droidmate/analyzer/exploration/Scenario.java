@@ -9,6 +9,7 @@ import org.droidmate.analyzer.ResourceManager;
 import org.droidmate.analyzer.api.Api;
 import org.droidmate.analyzer.api.IApi;
 import org.droidmate.analyzer.evaluation.IEvaluationStrategy;
+import org.droidmate.analyzer.wrappers.BoxMateConsts;
 import org.droidmate.apis.ApiPolicy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,66 +47,6 @@ public class Scenario implements IScenario {
         this.evaluator = evaluator;
     }
 
-    private void applyRestriction(JsonObject api, IApi restriction) {
-        if (restriction.getURI().length() > 0) {
-            String newRestriction = String.format("%s.toString().contains(\"%s\")",
-                    restriction.getURIParamName(), restriction.getURI());
-
-            String currRestriction = api.get("customPolicyConstraint").getAsString();
-
-            // is already restricted, add extra condition
-            if (currRestriction.length() > 0)
-                currRestriction = String.format("(%s) || (%s)", currRestriction, newRestriction);
-            else
-                currRestriction = newRestriction;
-
-            api.remove("customPolicyConstraint");
-            api.addProperty("customPolicyConstraint", currRestriction);
-        }
-
-        api.remove("policy");
-        api.addProperty("policy", this.policy.toString());
-    }
-
-    private Path writeNewMonitoredApisFile(JsonObject jsonApiList) throws IOException {
-        Path newFile = Paths.get(this.getDir().toString(), "monitored_apis.json");
-        Files.write(newFile, jsonApiList.toString().getBytes());
-
-        return newFile;
-    }
-
-    private Path createCfgFile(List<IApi> restrictedApis) {
-
-        Path defaultFile = new ResourceManager().getDefaultMonitoredApisFile();
-
-        // Initial exploration
-        if (restrictedApis.size() == 0)
-            return defaultFile;
-
-        try {
-            String fileData = String.join("\n", Files.readAllLines(defaultFile));
-            JsonObject jsonApiList = new JsonParser().parse(fileData).getAsJsonObject();
-
-            JsonArray apis = (JsonArray) jsonApiList.get("apis");
-
-            apis.forEach(item ->
-            {
-                IApi api = Api.build((JsonObject) item);
-
-                // Check if APi is being restricted
-                if ((restrictedApis.contains(api)) && (api.hasRestriction())) {
-                    this.applyRestriction((JsonObject) item, api.getRestriction());
-                }
-            });
-
-            return this.writeNewMonitoredApisFile(jsonApiList);
-        } catch (IOException e) {
-            logger.error(e.getMessage(), e);
-        }
-
-        return null;
-    }
-
     private void createDir() {
         try {
             String prefix = String.format("%d_", this.explDepth);
@@ -123,10 +64,29 @@ public class Scenario implements IScenario {
         return this.dir;
     }
 
+    private Path createPoliciesFile(List<IApi> restrictedApis){
+        StringBuilder data = new StringBuilder();
+
+        restrictedApis.forEach(p ->
+                data.append(String.format("%s\t%s\n", p.toString(), this.policy.toString())));
+
+        Path res = Paths.get(this.getDir().toString(), BoxMateConsts.FILE_API_POLICIES);
+        try{
+            Files.write(res, data.toString().getBytes());
+        }
+        catch (IOException e){
+            logger.error(e.getMessage(), e);
+        }
+
+        assert Files.exists(res);
+
+        return res;
+    }
+
     @Override
     public void initialize(){
         this.createDir();
-        Path cfgFile = this.createCfgFile(this.restrictedApis);
+        Path cfgFile = this.createPoliciesFile(this.restrictedApis);
         this.setCfgFile(cfgFile);
     }
 

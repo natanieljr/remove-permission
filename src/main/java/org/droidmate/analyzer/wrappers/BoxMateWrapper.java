@@ -6,9 +6,6 @@ import org.droidmate.analyzer.Configuration;
 import org.droidmate.analyzer.exploration.ExplorationResult;
 import org.droidmate.analyzer.exploration.IExplorationResult;
 import org.droidmate.frontend.DroidmateFrontend;
-import org.gradle.tooling.BuildLauncher;
-import org.gradle.tooling.GradleConnector;
-import org.gradle.tooling.ProjectConnection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,6 +24,30 @@ public class BoxMateWrapper {
 
     private AdbWrapper adbWrapper = new AdbWrapper();
     private Configuration cfg;
+
+    private static List<String> getExploreArgs(Path apksDir){
+        List<String> args = new ArrayList<>();
+        args.add(BoxMateConsts.ARGS_API23);
+        args.add(BoxMateConsts.ARGS_REPLACE_RESOURCES);
+        args.add(BoxMateConsts.ARGS_RESET);
+        args.add(BoxMateConsts.ARGS_SEED);
+        args.add(BoxMateConsts.ARGS_SNAP);
+        args.add(BoxMateConsts.ARGS_TIME);
+        args.add(String.format(BoxMateConsts.ARGS_DIR,
+                apksDir.toString()));
+
+        return args;
+    }
+
+    private static List<String> getinlineArgs(Path apksDir){
+        List<String> args = new ArrayList<>();
+        args.add(BoxMateConsts.ARGS_INLINE);
+        args.add(BoxMateConsts.ARGS_API23);
+        args.add(String.format(BoxMateConsts.ARGS_DIR,
+                apksDir.toString()));
+
+        return args;
+    }
 
     public BoxMateWrapper(Configuration cfg) {
         this.cfg = cfg;
@@ -75,9 +96,7 @@ public class BoxMateWrapper {
         return dst;
     }
 
-    public Path inlineApp(Path apk, Path monitoredApis) {
-        this.recompileMonitor(monitoredApis);
-
+    public Path inlineApp(Path apk) {
         String fileName = apk.getFileName().toString();
         logger.info(String.format("BoxMate inline: %s", fileName));
 
@@ -85,12 +104,8 @@ public class BoxMateWrapper {
             FileUtils.cleanDirectory(this.cfg.workDir.toFile());
             Path apkToInline = this.copyApkToWorkDir(apk);
 
-            String[] args = new String[]{
-                    BoxMateConsts.ARGS_INLINE,
-                    BoxMateConsts.ARGS_API23,
-                    String.format(BoxMateConsts.ARGS_DIR,
-                            apkToInline.toAbsolutePath().getParent().toString())};
-            this.runBoxMate(args);
+            List<String> args = BoxMateWrapper.getinlineArgs(apkToInline.toAbsolutePath().getParent());
+            this.runBoxMate(args.toArray(new String[0]));
 
             return this.findInlinedFile(apk);
         } catch (IOException e) {
@@ -119,21 +134,26 @@ public class BoxMateWrapper {
                 FileUtils.cleanDirectory(output.toFile());
                 Files.delete(output);
             }
-
-            Path resources = Paths.get("temp_extracted_resources");
-            if (Files.exists(resources)) {
-                FileUtils.cleanDirectory(resources.toFile());
-                Files.delete(resources);
-            }
-
-            FileUtils.copyDirectory(cfg.droidMateExtractedRes.toFile(), resources.toFile());
         }
         catch (IOException e) {
             logger.error(e.getMessage(), e);
         }
     }
 
-    public IExplorationResult explore(Path apk, boolean isInitialExpl) {
+    private void deployPoliciesFile(Path policiesFile){
+        Path dst = Paths.get(this.cfg.extractedResDir.toString(), BoxMateConsts.FILE_API_POLICIES);
+        try{
+            Files.deleteIfExists(dst);
+            assert !Files.exists(dst);
+            Files.copy(policiesFile, dst);
+        }catch(IOException e){
+            logger.error(e.getMessage(), e);
+        }
+
+        assert Files.exists(dst);
+    }
+
+    public IExplorationResult explore(Path apk, Path policiesFile, boolean isInitialExpl) {
         String fileName = apk.getFileName().toString();
         if (isInitialExpl)
             logger.info(String.format("BoxMate explore: %s", fileName));
@@ -141,6 +161,7 @@ public class BoxMateWrapper {
             logger.info(String.format("BoxMate explore scenario: %s", apk.getFileName().toString()));
 
         this.cleanDroidmateDirectories();
+        this.deployPoliciesFile(policiesFile);
 
         try {
             FileUtils.cleanDirectory(this.cfg.workDir.toFile());
@@ -150,15 +171,7 @@ public class BoxMateWrapper {
             // Due to exceptions generated form the monitor, sometimes the devices crashes
             this.adbWrapper.rebootAndUnlock();
 
-            List<String> args = new ArrayList<>();
-            args.add(BoxMateConsts.ARGS_API23);
-            args.add(BoxMateConsts.ARGS_RESET);
-            args.add(BoxMateConsts.ARGS_SEED);
-            args.add(BoxMateConsts.ARGS_SNAP);
-            args.add(BoxMateConsts.ARGS_TIME);
-            args.add(String.format(BoxMateConsts.ARGS_DIR,
-                    apkToExplore.toAbsolutePath().getParent().toString()));
-
+            List<String> args = BoxMateWrapper.getExploreArgs(apkToExplore.toAbsolutePath().getParent());
             this.runBoxMate(args.toArray(new String[0]));
 
             Path explDir = Paths.get("output_device1");
@@ -169,65 +182,5 @@ public class BoxMateWrapper {
         }
 
         return null;
-    }
-
-    private void removeCompiledMonitorApkFiles() {
-        logger.debug("Removing compiled DoridMate monitor to ensure gradle will deploy correctly");
-        try {
-            if (Files.exists(Paths.get("temp_extracted_resources")))
-                new CommandLineWrapper().execute("find temp_extracted_resources -name '*onitor*.apk' -type f -delete");
-            new CommandLineWrapper().execute("find " + cfg.droidMateGradleFileDir.toString() + " -name '*onitor*.apk' -type f -delete");
-        }
-        catch (IOException e){
-            logger.error(e.getMessage(), e);
-        }
-    }
-
-    private void createMonitoredApisBackup() {
-        Path monitoredAPIs = this.cfg.droidMateMonitoredApis;
-        Path monitoredAPKBak = monitoredAPIs.resolveSibling(monitoredAPIs.getFileName() + ".bak");
-
-        if (!Files.exists(monitoredAPKBak)) {
-            logger.debug("Backing up original monitored_apis.json file");
-            try {
-                Files.copy(monitoredAPIs, monitoredAPKBak, StandardCopyOption.REPLACE_EXISTING);
-            } catch (IOException e) {
-                logger.error(e.getMessage(), e);
-            }
-        }
-
-        assert Files.exists(monitoredAPKBak);
-    }
-
-    private void deployNewMonitoredApisFile(Path newFile) {
-        try {
-            Files.deleteIfExists(this.cfg.droidMateMonitoredApis);
-
-            Files.copy(newFile, this.cfg.droidMateMonitoredApis, StandardCopyOption.REPLACE_EXISTING);
-        } catch (IOException e) {
-            logger.error(e.getMessage(), e);
-        }
-
-        assert Files.exists(this.cfg.droidMateMonitoredApis);
-    }
-
-    private void recompileMonitor(Path newMonitoredApisFile) {
-        this.createMonitoredApisBackup();
-        this.removeCompiledMonitorApkFiles();
-        this.deployNewMonitoredApisFile(newMonitoredApisFile);
-
-        logger.info("Recompiling DroidMate (gradlew clean build)");
-        ProjectConnection connection = GradleConnector.newConnector()
-                .forProjectDirectory(this.cfg.droidMateGradleFileDir.toFile())
-                .connect();
-        try {
-            BuildLauncher build = connection.newBuild();
-            build.forTasks("clean", "build");
-            build.setStandardOutput(null);
-            //build.setStandardOutput(System.out);
-            build.run();
-        } finally {
-            connection.close();
-        }
     }
 }

@@ -1,6 +1,5 @@
 package org.droidmate.analyzer;
 
-
 /**
  * Application's main class
  */
