@@ -22,10 +22,10 @@ import java.util.stream.Stream;
 public class BoxMateWrapper {
     private static final Logger logger = LoggerFactory.getLogger(BoxMateWrapper.class);
 
-    private AdbWrapper adbWrapper = new AdbWrapper();
+    private AdbWrapper adbWrapper;
     private Configuration cfg;
 
-    private static List<String> getExploreArgs(Path apksDir){
+    private List<String> getExploreArgs(Path apksDir){
         List<String> args = new ArrayList<>();
         args.add(BoxMateConsts.ARGS_API23);
         args.add(BoxMateConsts.ARGS_REPLACE_RESOURCES);
@@ -33,28 +33,43 @@ public class BoxMateWrapper {
         args.add(BoxMateConsts.ARGS_SEED);
         args.add(BoxMateConsts.ARGS_SNAP);
         args.add(BoxMateConsts.ARGS_TIME);
+        args.add(String.format(BoxMateConsts.ARGS_EXPL_OUTPUT_DIR, this.getExplorationOutputDir().toString()));
+        args.add(String.format(BoxMateConsts.ARGS_DEVICE, this.getAdbWrapper().getDeviceIdx()));
+        args.add(String.format(BoxMateConsts.ARGS_DIR,
+                apksDir.toAbsolutePath().toString()));
+
+        return args;
+    }
+
+    private List<String> getinlineArgs(Path apksDir){
+        List<String> args = new ArrayList<>();
+        args.add(BoxMateConsts.ARGS_INLINE);
+        args.add(BoxMateConsts.ARGS_API23);
+        args.add(String.format(BoxMateConsts.ARGS_DEVICE, this.cfg.deviceIdx));
         args.add(String.format(BoxMateConsts.ARGS_DIR,
                 apksDir.toString()));
 
         return args;
     }
 
-    private static List<String> getinlineArgs(Path apksDir){
-        List<String> args = new ArrayList<>();
-        args.add(BoxMateConsts.ARGS_INLINE);
-        args.add(BoxMateConsts.ARGS_API23);
-        args.add(String.format(BoxMateConsts.ARGS_DIR,
-                apksDir.toString()));
-
-        return args;
+    private Path getExplorationOutputDir(){
+        return Paths.get("output_device" + this.getAdbWrapper().getDeviceIdx());
     }
 
     public BoxMateWrapper(Configuration cfg) {
         this.cfg = cfg;
     }
 
+    private AdbWrapper getAdbWrapper(){
+        if (this.adbWrapper == null){
+            this.adbWrapper = new AdbWrapper(cfg.deviceIdx);
+        }
+
+        return this.adbWrapper;
+    }
+
     private Path copyApkToWorkDir(Path src) {
-        Path dst = this.cfg.workDir.resolve(src.getFileName());
+        Path dst = this.cfg.getWorkDir().resolve(src.getFileName());
 
         try {
             Files.copy(src, dst);
@@ -82,7 +97,7 @@ public class BoxMateWrapper {
 
         String apkFileName = FilenameUtils.removeExtension(apk.getFileName().toString());
         try {
-            Stream<Path> files = Files.list(this.cfg.workDir);
+            Stream<Path> files = Files.list(this.cfg.getWorkDir());
 
             Optional<Path> inlinedFile = files.filter(p -> p.getFileName().toString().contains(apkFileName)).findFirst();
             assert inlinedFile.isPresent();
@@ -101,10 +116,10 @@ public class BoxMateWrapper {
         logger.info(String.format("BoxMate inline: %s", fileName));
 
         try {
-            FileUtils.cleanDirectory(this.cfg.workDir.toFile());
+            FileUtils.cleanDirectory(this.cfg.getWorkDir().toFile());
             Path apkToInline = this.copyApkToWorkDir(apk);
 
-            List<String> args = BoxMateWrapper.getinlineArgs(apkToInline.toAbsolutePath().getParent());
+            List<String> args = this.getinlineArgs(apkToInline.toAbsolutePath().getParent());
             this.runBoxMate(args.toArray(new String[0]));
 
             return this.findInlinedFile(apk);
@@ -129,7 +144,7 @@ public class BoxMateWrapper {
 
     private void cleanDroidmateDirectories() {
         try {
-            Path output = Paths.get("output_device1");
+            Path output = this.getExplorationOutputDir();
             if (Files.exists(output)) {
                 FileUtils.cleanDirectory(output.toFile());
                 Files.delete(output);
@@ -141,7 +156,7 @@ public class BoxMateWrapper {
     }
 
     private void deployPoliciesFile(Path policiesFile){
-        Path dst = this.cfg.extractedResDir.resolve(BoxMateConsts.FILE_API_POLICIES);
+        Path dst = this.cfg.getExtractedResDir().resolve(BoxMateConsts.FILE_API_POLICIES);
         try{
             Files.deleteIfExists(dst);
             assert !Files.exists(dst);
@@ -164,17 +179,17 @@ public class BoxMateWrapper {
         this.deployPoliciesFile(policiesFile);
 
         try {
-            FileUtils.cleanDirectory(this.cfg.workDir.toFile());
+            FileUtils.cleanDirectory(this.cfg.getWorkDir().toFile());
             Path apkToExplore = this.copyApkToWorkDir(apk);
 
             // Reboot and unlock the device to ensure all tests will be correctly executed
             // Due to exceptions generated form the monitor, sometimes the devices crashes
-            this.adbWrapper.rebootAndUnlock();
+            //this.adbWrapper.rebootAndUnlock();
 
-            List<String> args = BoxMateWrapper.getExploreArgs(apkToExplore.toAbsolutePath().getParent());
+            List<String> args = this.getExploreArgs(apkToExplore.getParent());
             this.runBoxMate(args.toArray(new String[0]));
 
-            Path explDir = Paths.get("output_device1");
+            Path explDir = this.getExplorationOutputDir();
             this.unpackSERFile(explDir);
             return new ExplorationResult(explDir);
         } catch (IOException e) {

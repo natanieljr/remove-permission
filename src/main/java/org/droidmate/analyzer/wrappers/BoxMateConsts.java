@@ -14,6 +14,8 @@ public class BoxMateConsts {
     static final String ARGS_RESET = "-resetEvery=30";
     static final String ARGS_TIME = "-timeLimit=900";
     static final String ARGS_SEED = "-randomSeed=0";
+    static final String ARGS_DEVICE = "-device=%d";
+    static final String ARGS_EXPL_OUTPUT_DIR = "-outputDir=%s";
     static final String ARGS_SNAP = "-getValidGuiSnapshotRetryAttempts=2";
     static final String ARGS_REPLACE_RESOURCES = "-replaceExtractedResources=false";
     static final String ARGS_UNPACK = "-unpack";
