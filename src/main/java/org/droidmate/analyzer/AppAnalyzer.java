@@ -26,11 +26,11 @@ class AppAnalyzer {
 
     private void initialize() {
         try {
-            if (!Files.exists(this.cfg.workDir))
-                Files.createDirectories(this.cfg.workDir);
+            if (!Files.exists(this.cfg.getWorkDir()))
+                Files.createDirectories(this.cfg.getWorkDir());
 
 
-            FileUtils.cleanDirectory(this.cfg.workDir.toFile());
+            FileUtils.cleanDirectory(this.cfg.getWorkDir().toFile());
         } catch (IOException e) {
             logger.error(e.getMessage(), e);
         }
@@ -40,8 +40,8 @@ class AppAnalyzer {
         Date startTime = new Date();
         this.initialize();
 
-        IExplorationStrategy strategy = new DefaultExplorationStrategy(cfg.apiPolicy, cfg.evalStrategyBuilder,
-                cfg.scenarioBuilder);
+        IExplorationStrategy strategy = new DefaultExplorationStrategy(cfg.apiPolicy, cfg.getEvalStrategyBuilder(),
+                cfg.getScenarioBuilder());
         app.explore(strategy);
 
         Date endTime = new Date();

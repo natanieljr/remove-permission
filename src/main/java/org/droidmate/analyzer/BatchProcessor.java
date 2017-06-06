@@ -1,6 +1,5 @@
 package org.droidmate.analyzer;
 
-import org.droidmate.analyzer.evaluation.EvaluationStrategyBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
