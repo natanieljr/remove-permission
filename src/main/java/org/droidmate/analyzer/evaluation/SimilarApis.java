@@ -1,13 +1,11 @@
 package org.droidmate.analyzer.evaluation;
 
-import at.unisalzburg.apted.costmodel.StringUnitCostModel;
 import at.unisalzburg.apted.distance.APTED;
 import at.unisalzburg.apted.node.Node;
 import at.unisalzburg.apted.node.StringNodeData;
 import at.unisalzburg.apted.parser.BracketStringInputParser;
 import org.droidmate.analyzer.exploration.IExplorationResult;
 import org.droidmate.analyzer.exploration.IScenario;
-import org.droidmate.analyzer.exploration.Scenario;
 
 /**
  * Evaluation based on the similarity between the list of explored APIs (Tree edit distance).

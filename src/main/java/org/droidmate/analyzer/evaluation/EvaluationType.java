@@ -7,5 +7,5 @@ public enum EvaluationType {
     DidNotCrash,
     SimilarSize,
     SimilarApis,
-    AwaysValid
+    AlwaysValid
 }

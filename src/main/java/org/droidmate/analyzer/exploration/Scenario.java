@@ -97,14 +97,24 @@ public class Scenario implements IScenario {
 
     private Path copyExplOutputToDir(IExplorationResult res) {
         Path src = res.getExplDir();
-        Path dst = this.getDir().resolve("output_device1");
+        Path dst = this.getDir().resolve("output_device");
 
         try {
             if (Files.exists(dst))
                 FileUtils.cleanDirectory(dst.toFile());
             Files.deleteIfExists(dst);
 
-            FileUtils.copyDirectory(src.toFile(), dst.toFile());
+            // Depending on the crash, DroidMate does not create the output file
+            // Ex:
+            // 2017-06-02 16:37:51.690 INFO  org.droidmate.tools.ApksProvider
+            //      Reading input apks from /Users/nataniel/Documents/saarland/repositories/remove-permission/data4/tmp
+            // 2017-06-02 16:37:51.719 WARN  org.droidmate.android_sdk.Apk
+            //      ! While getting metadata for /Users/nataniel/Documents/saarland/repositories/remove-permission/data4/tmp/com.netflix.mediaclient.apk,
+            //      got an: org.droidmate.android_sdk.LaunchableActivityNameProblemException: More than one launchable activity found. Returning null apk.
+            if (Files.exists(src))
+                FileUtils.copyDirectory(src.toFile(), dst.toFile());
+            else
+                Files.createDirectory(src);
 
             FileUtils.cleanDirectory(src.toFile());
             Files.deleteIfExists(src);

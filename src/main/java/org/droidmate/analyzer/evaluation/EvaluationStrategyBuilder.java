@@ -1,7 +1,6 @@
 package org.droidmate.analyzer.evaluation;
 
 import org.apache.commons.lang3.NotImplementedException;
-import org.droidmate.analyzer.Configuration;
 import org.droidmate.analyzer.exploration.IScenario;
 
 /**
@@ -29,8 +28,8 @@ public class EvaluationStrategyBuilder {
                 return new SimilarExplorationSize(initialExpl, this.threshold);
             case SimilarApis:
                 return new SimilarApis(initialExpl, this.threshold);
-            case AwaysValid:
-                return new AwaysValid(initialExpl, this.threshold);
+            case AlwaysValid:
+                return new AlwaysValid(initialExpl, this.threshold);
             default:
                 throw new NotImplementedException("Evaluation type required");
         }

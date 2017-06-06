@@ -49,14 +49,25 @@ public class Api implements IApi {
     }
 
     public static String getParamsFromMethodSignature(String methodName) {
-        String pattern;
-        if (methodName.contains("("))
-            pattern = "\\(";
-        else
-            pattern = "<";
-        String[] data = methodName.split(pattern);
+        try {
+            String pattern;
+            if (methodName.contains("("))
+                pattern = "\\(";
+            else
+                pattern = "<";
+            String[] data = methodName.split(pattern);
 
-        return data[1].replace(")", "");
+            if (data.length > 0)
+                return data[1].replace(")", "");
+            else
+                return "";
+        }
+        catch (Exception e){
+            logger.error(methodName);
+            logger.error(e.getMessage(), e);
+        }
+
+        return "";
     }
 
     public static String getMethodNameFromSignature(String methodSignature) {

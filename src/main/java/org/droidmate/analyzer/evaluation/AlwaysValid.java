@@ -14,9 +14,9 @@ import org.droidmate.analyzer.exploration.Scenario;
  *
  * Used to perform full exploration
  */
-public class AwaysValid extends SimilarApis {
+public class AlwaysValid extends SimilarApis {
 
-    AwaysValid(IScenario initialExpl, double threshold){
+    AlwaysValid(IScenario initialExpl, double threshold){
         super(initialExpl, threshold);    }
 
     @Override
