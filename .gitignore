@@ -12,11 +12,11 @@ gradle
 *.jar
 
 # Project output dir
-data
+data*
 
 # APKs
-apks
+apks*
 
 # BoxMate dir
-temp_extracted_resources
-output_device1
+temp_extracted_resources*
+output_device*
