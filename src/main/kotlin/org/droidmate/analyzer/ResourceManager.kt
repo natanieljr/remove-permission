@@ -7,14 +7,14 @@ import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
-import java.util.*
+import kotlin.collections.ArrayList
 
 /**
  * Manages data read from resource files
  */
 class ResourceManager {
 
-    private fun processLine(line: String) {
+    private fun processLine(line: String) : IApi {
         logger.trace("Processing line %s", line)
         var classAndMethodNameStr = line
         var uri = ""
@@ -37,7 +37,7 @@ class ResourceManager {
 
         val api = Api.build(className, methodName, params, uri)
 
-        ResourceManager.restrictableApis!!.add(api)
+        return api
     }
 
     private fun loadResourceFile(fileName: String): Path? {
@@ -54,34 +54,36 @@ class ResourceManager {
         return null
     }
 
-    private fun initializeApiMapping() {
-        ResourceManager.restrictableApis = ArrayList<IApi>()
+    internal fun initializeApiMapping(apiRestrictions : String = "api_restrictions.txt"): List<IApi> {
+        val apiList = ArrayList<IApi>()
 
         try {
-            val file = this.loadResourceFile("api_restrictions.txt")!!
+            val file = this.loadResourceFile(apiRestrictions)!!
             val restrictions = Files.readAllLines(file)
 
-            restrictions.forEach { p -> this.processLine(p) }
+            restrictions.forEach { p -> if (!p.startsWith("#")) apiList.add(this.processLine(p)) }
 
         } catch (e: IOException) {
             logger.error(e.message, e)
         }
 
-        assert(ResourceManager.restrictableApis!!.size > 0)
+        assert(apiList.isNotEmpty())
+
+        return apiList
     }
 
     fun getRestriction(api: IApi): IApi? {
-        if (ResourceManager.restrictableApis == null)
-            this.initializeApiMapping()
+        if (ResourceManager.restrictableApis.isEmpty())
+            ResourceManager.restrictableApis = this.initializeApiMapping()
 
-        if (restrictableApis!!.contains(api))
-            return restrictableApis!![restrictableApis!!.indexOf(api)]
+        if (restrictableApis.contains(api))
+            return restrictableApis[restrictableApis.indexOf(api)]
 
         return null
     }
 
     companion object {
         private val logger = LoggerFactory.getLogger(ResourceManager::class.java)
-        private var restrictableApis: MutableList<IApi>? = null
+        private var restrictableApis: List<IApi> = ArrayList()
     }
 }
