@@ -15,6 +15,7 @@ import java.util.*
 class ResourceManager {
 
     private fun processLine(line: String) {
+        logger.trace("Processing line %s", line)
         var classAndMethodNameStr = line
         var uri = ""
 
