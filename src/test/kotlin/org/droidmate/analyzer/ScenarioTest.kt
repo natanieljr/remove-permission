@@ -1,6 +1,5 @@
 package org.droidmate.analyzer
 
-import ch.qos.logback.core.util.FileUtil
 import org.apache.commons.io.FileUtils
 import org.droidmate.analyzer.evaluation.IEvaluationStrategy
 import org.droidmate.analyzer.exploration.ScenarioBuilder
@@ -49,7 +48,7 @@ class ScenarioTest{
         val scenario = builder.build(app, restrictedApis, depth, ApiPolicy.Deny, evalStrategy)
         evalScenario(scenario, depth, restrictedApis.size)
 
-        return scenario;
+        return scenario
     }
 
     @Test
