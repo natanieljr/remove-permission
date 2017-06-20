@@ -1,7 +1,6 @@
 package org.droidmate.analyzer
 
 import org.junit.Assert
-import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.FixMethodOrder
 import org.junit.Test
