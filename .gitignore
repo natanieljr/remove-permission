@@ -20,3 +20,6 @@ apks*
 # BoxMate dir
 temp_extracted_resources*
 output_device*
+
+# Tests dir
+test
