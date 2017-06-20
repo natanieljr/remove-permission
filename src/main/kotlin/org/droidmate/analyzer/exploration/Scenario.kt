@@ -20,6 +20,10 @@ import java.util.*
 class Scenario internal constructor(private val app: IAppUnderTest, override val restrictedApiList: List<IApi>, override val explDepth: Int, private val policy: ApiPolicy,
                                     private val evaluator: IEvaluationStrategy) : IScenario {
 
+    init {
+        logger.info("Creating scenario of depth %d with the following APIs: %s", explDepth, restrictedApiList)
+    }
+
     override var result: IExplorationResult? = null
         set(result) {
             val newResDir = this.copyExplOutputToDir(result!!)
@@ -45,6 +49,7 @@ class Scenario internal constructor(private val app: IAppUnderTest, override val
 
             assert(Files.exists(this.cfgFile))
         }
+
     override var inlinedApk: Path = Constants.EMPTY_PATH
         set(inlinedApk) {
             val fileName = inlinedApk.fileName.toString()

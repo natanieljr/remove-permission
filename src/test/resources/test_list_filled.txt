@@ -1,0 +1,4 @@
+android.hardware.Camera->open(int)
+# Skip
+android.media.AudioRecord-><init>(int,int,int,int,int)
+android.content.ContentResolver->query(android.net.Uri,java.lang.String[],java.lang.String,java.lang.String[],java.lang.String,android.os.CancellationSignal)	content://call_log/calls
