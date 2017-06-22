@@ -39,10 +39,14 @@ class Configuration {
     internal var evalStrategyBuilder: EvaluationStrategyBuilder = EvaluationStrategyBuilder(this.evaluationType,
             this.evaluationThreshold)
 
-    internal val workDir: Path = dataDir.resolve("tmp")
+    internal fun getWorkDir(deviceSN: String): Path {
+        val deviceSNDir = deviceSN.replace(":", "-")
+        return dataDir.resolve("tmp").resolve(deviceSNDir)
+    }
 
     internal fun getExtractedResDir(deviceSN: String): Path {
-        return Paths.get("temp_extracted_resources$deviceSN")
+        val deviceSNDir = deviceSN.replace(":", "-")
+        return Paths.get("temp_extracted_resources$deviceSNDir")
     }
 
 }

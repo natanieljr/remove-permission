@@ -40,25 +40,23 @@ class ResourceManager {
         return api
     }
 
-    private fun loadResourceFile(fileName: String): Path? {
+    internal fun loadResourceFile(fileName: String): Path {
         val classLoader = javaClass.classLoader
         try {
-            val resource = classLoader.getResource(fileName)
+            val resource = classLoader.getResource(fileName)!!
 
-            if (resource != null)
-                return Paths.get(resource.toURI())
+            return Paths.get(resource.toURI())
         } catch (e: Exception) {
             logger.error(e.message, e)
+            throw UnsupportedOperationException(e.message)
         }
-
-        return null
     }
 
     internal fun initializeApiMapping(apiRestrictions : String = "api_restrictions.txt"): List<IApi> {
         val apiList = ArrayList<IApi>()
 
         try {
-            val file = this.loadResourceFile(apiRestrictions)!!
+            val file = this.loadResourceFile(apiRestrictions)
             val restrictions = Files.readAllLines(file)
 
             restrictions.forEach { p -> if (!p.startsWith("#")) apiList.add(this.processLine(p)) }

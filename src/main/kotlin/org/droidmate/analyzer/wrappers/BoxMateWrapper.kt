@@ -4,6 +4,7 @@ import org.apache.commons.io.FileUtils
 import org.apache.commons.io.FilenameUtils
 import org.droidmate.analyzer.Configuration
 import org.droidmate.analyzer.Constants
+import org.droidmate.analyzer.exploration.ErrorExplorationResult
 import org.droidmate.analyzer.exploration.ExplorationResult
 import org.droidmate.analyzer.exploration.IExplorationResult
 import org.droidmate.android_sdk.AdbWrapper
@@ -22,9 +23,20 @@ import java.util.*
 /**
  * Wrapper to BoxMate
  */
-class BoxMateWrapper(private val cfg: Configuration) {
+class BoxMateWrapper(private val cfg: Configuration) : IBoxMateWrapper {
 
-    private var deviceSN = this.getDeviceSN()
+    private val deviceSN = this.getDeviceSN()
+
+    init{
+        try{
+            if (!Files.exists(this.cfg.getWorkDir(this.deviceSN)))
+                Files.createDirectories(this.cfg.getWorkDir(this.deviceSN))
+
+            FileUtils.cleanDirectory(this.cfg.getWorkDir(this.deviceSN).toFile())
+        } catch (e: IOException) {
+            logger.error(e.message, e)
+        }
+    }
 
     private fun getDeviceSN(): String {
         val droidmateCfg = ConfigurationBuilder().build(this.getInlineArgs(Constants.EMPTY_PATH).toTypedArray(), FileSystems.getDefault())
@@ -52,6 +64,7 @@ class BoxMateWrapper(private val cfg: Configuration) {
         args.add(BoxMateConsts.ARGS_SEED)
         args.add(BoxMateConsts.ARGS_SNAP)
         args.add(BoxMateConsts.ARGS_TIME)
+        args.add(BoxMateConsts.ARGS_LAUNCH_ACTIVITY_DELAY)
         args.add(String.format(BoxMateConsts.ARGS_EXPL_OUTPUT_DIR, this.explorationOutputDir.toString()))
         args.add(String.format(BoxMateConsts.ARGS_DEVICE_SEQ, this.cfg.deviceIdx))
 
@@ -68,6 +81,7 @@ class BoxMateWrapper(private val cfg: Configuration) {
         val args = ArrayList<String>()
         args.add(BoxMateConsts.ARGS_INLINE)
         args.add(BoxMateConsts.ARGS_API23)
+        args.add(BoxMateConsts.ARGS_SEED)
         args.add(String.format(BoxMateConsts.ARGS_DEVICE_SEQ, this.cfg.deviceIdx))
 
         if (this.deviceSN != Constants.EMPTY_DEVICE_SN)
@@ -83,7 +97,7 @@ class BoxMateWrapper(private val cfg: Configuration) {
         get() = Paths.get("output_device" + this.cfg.deviceIdx)
 
     private fun copyApkToWorkDir(src: Path): Path {
-        val dst = this.cfg.workDir.resolve(src.fileName)
+        val dst = this.cfg.getWorkDir(this.deviceSN).resolve(src.fileName)
 
         try {
             Files.copy(src, dst)
@@ -112,7 +126,7 @@ class BoxMateWrapper(private val cfg: Configuration) {
 
         val apkFileName = FilenameUtils.removeExtension(apk.fileName.toString())
         try {
-            val files = Files.list(this.cfg.workDir)
+            val files = Files.list(this.cfg.getWorkDir(this.deviceSN))
 
             val inlinedFile = files.filter { p -> p.fileName.toString().contains(apkFileName) }.findFirst()
             assert(inlinedFile.isPresent)
@@ -126,12 +140,12 @@ class BoxMateWrapper(private val cfg: Configuration) {
         return dst!!
     }
 
-    fun inlineApp(apk: Path): Path {
+    override fun inlineApp(apk: Path): Path {
         val fileName = apk.fileName.toString()
         logger.info(String.format("BoxMate inline: %s", fileName))
 
         try {
-            FileUtils.cleanDirectory(this.cfg.workDir.toFile())
+            FileUtils.cleanDirectory(this.cfg.getWorkDir(this.deviceSN).toFile())
             val apkToInline = this.copyApkToWorkDir(apk)
 
             val args = this.getInlineArgs(apkToInline.toAbsolutePath().parent)
@@ -160,6 +174,8 @@ class BoxMateWrapper(private val cfg: Configuration) {
     private fun deployPoliciesFile(policiesFile: Path) {
         val dst = this.cfg.getExtractedResDir(this.deviceSN).resolve(BoxMateConsts.FILE_API_POLICIES)
         try {
+            if (!Files.exists(dst.parent))
+                Files.createDirectories(dst.parent)
             Files.deleteIfExists(dst)
             assert(!Files.exists(dst))
             Files.copy(policiesFile, dst)
@@ -170,7 +186,7 @@ class BoxMateWrapper(private val cfg: Configuration) {
         assert(Files.exists(dst))
     }
 
-    fun explore(apk: Path, policiesFile: Path, isInitialExpl: Boolean): IExplorationResult {
+    override fun explore(apk: Path, policiesFile: Path, isInitialExpl: Boolean): IExplorationResult {
         val fileName = apk.fileName.toString()
         if (isInitialExpl)
             logger.info(String.format("BoxMate explore: %s", fileName))
@@ -181,18 +197,20 @@ class BoxMateWrapper(private val cfg: Configuration) {
         this.deployPoliciesFile(policiesFile)
 
         try {
-            FileUtils.cleanDirectory(this.cfg.workDir.toFile())
+            FileUtils.cleanDirectory(this.cfg.getWorkDir(this.deviceSN).toFile())
             val apkToExplore = this.copyApkToWorkDir(apk)
-
-            // Reboot and unlock the device to ensure all tests will be correctly executed
-            // Due to exceptions generated form the monitor, sometimes the devices crashes
-            //this.adbWrapper.rebootAndUnlock();
 
             val args = this.getExploreArgs(apkToExplore.parent)
             this.runBoxMate(args.toTypedArray())
 
             val explDir = this.explorationOutputDir
-            return ExplorationResult(explDir)
+            try{
+                return ExplorationResult(explDir)
+            }
+            catch (e: Exception){
+                return ErrorExplorationResult()
+            }
+
         } catch (e: IOException) {
             logger.error(e.message, e)
             throw UnsupportedOperationException("Could not explore scenario. Aborting")

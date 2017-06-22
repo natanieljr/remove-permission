@@ -21,7 +21,7 @@ class Scenario internal constructor(private val app: IAppUnderTest, override val
                                     private val evaluator: IEvaluationStrategy) : IScenario {
 
     init {
-        logger.info("Creating scenario of depth %d with the following APIs: %s", explDepth, restrictedApiList)
+        logger.info("Creating scenario of depth $explDepth with the following APIs: $restrictedApiList")
     }
 
     override var result: IExplorationResult? = null

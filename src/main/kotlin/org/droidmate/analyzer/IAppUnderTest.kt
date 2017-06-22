@@ -15,7 +15,7 @@ interface IAppUnderTest {
 
     val dir: Path
 
-    val initialExpl: IScenario
+    val initialExpl: IScenario?
 
     val currExplDepth: Int
 

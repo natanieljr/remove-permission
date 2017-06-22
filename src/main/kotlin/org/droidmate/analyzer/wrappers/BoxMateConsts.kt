@@ -15,6 +15,7 @@ object BoxMateConsts {
     internal val ARGS_EXPL_OUTPUT_DIR = "-outputDir=%s"
     internal val ARGS_SNAP = "-getValidGuiSnapshotRetryAttempts=2"
     internal val ARGS_REPLACE_RESOURCES = "-replaceExtractedResources=false"
+    internal val ARGS_LAUNCH_ACTIVITY_DELAY = "-launchActivityDelay=20000"
 
     val FILE_API_POLICIES = "api_policies.txt"
 }

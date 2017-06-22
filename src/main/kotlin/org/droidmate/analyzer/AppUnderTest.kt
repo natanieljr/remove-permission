@@ -8,26 +8,24 @@ import org.droidmate.analyzer.api.IApi
 import org.droidmate.analyzer.exploration.IExplorationStrategy
 import org.droidmate.analyzer.exploration.IScenario
 import org.droidmate.analyzer.wrappers.BoxMateWrapper
+import org.droidmate.analyzer.wrappers.IBoxMateWrapper
 import org.slf4j.LoggerFactory
 import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.Path
 import java.util.*
 
-class AppUnderTest internal constructor(private val cfg: Configuration, path: Path) : IAppUnderTest {
-    private val boxMate: BoxMateWrapper
+class AppUnderTest internal constructor(private val cfg: Configuration, override val apkFile: Path,
+                                        private val boxMate: IBoxMateWrapper = BoxMateWrapper(cfg)) : IAppUnderTest {
     private var apk: ApkFile? = null
-    override val apkFile: Path
     override val scenarios: MutableList<IScenario> = ArrayList()
     override var currExplDepth: Int = 0
         private set
-    override var dir: Path = this.createExperimentDir()
+    override var dir: Path = Constants.EMPTY_PATH
         private set
 
     init {
         this.currExplDepth = 0
-        this.boxMate = BoxMateWrapper(this.cfg)
-        this.apkFile = path.toAbsolutePath()
 
         try {
             this.apk = ApkFile(this.apkFile.toFile())
@@ -36,7 +34,7 @@ class AppUnderTest internal constructor(private val cfg: Configuration, path: Pa
         }
 
         assert(this.apk != null)
-        this.createExperimentDir()
+        this.dir = this.createExperimentDir()
     }
 
     private fun createExperimentDir(): Path {
@@ -45,13 +43,13 @@ class AppUnderTest internal constructor(private val cfg: Configuration, path: Pa
         val newDir = this.cfg.dataDir.resolve(dirName)
 
         try {
-            Files.createDirectories(this.dir)
-            FileUtils.cleanDirectory(this.dir.toFile())
+            Files.createDirectories(newDir)
+            FileUtils.cleanDirectory(newDir.toFile())
         } catch (e: IOException) {
             logger.error(e.message, e)
         }
 
-        assert(Files.exists(this.dir))
+        assert(Files.exists(newDir))
 
         return newDir
     }
@@ -71,7 +69,7 @@ class AppUnderTest internal constructor(private val cfg: Configuration, path: Pa
             return apkMeta
         }
 
-    override val initialExpl: IScenario
+    override val initialExpl: IScenario?
         get() {
             val scenarioStream = this.scenarios.stream()
                     .filter { p -> p.explDepth == 0 }
@@ -105,12 +103,15 @@ class AppUnderTest internal constructor(private val cfg: Configuration, path: Pa
 
     private fun inline(scenario: IScenario) {
         // Inline app
-        scenario.inlinedApk = boxMate.inlineApp(this.apkFile)
+        if ((this.initialExpl != null) && (this.initialExpl!!.inlinedApk != Constants.EMPTY_PATH))
+            scenario.inlinedApk = this.initialExpl!!.inlinedApk
+        else
+            scenario.inlinedApk = boxMate.inlineApp(this.apkFile)
     }
 
     private val initialApiList: List<IApi>
         get() {
-            return this.initialExpl.exploredApiList
+            return this.initialExpl!!.exploredApiList
         }
 
     override val initialMonitoredApiList: List<IApi>

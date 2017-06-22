@@ -4,22 +4,41 @@ import org.droidmate.analyzer.IAppUnderTest
 import org.droidmate.analyzer.evaluation.EvaluationStrategyBuilder
 import org.droidmate.analyzer.evaluation.IEvaluationStrategy
 import org.droidmate.apis.ApiPolicy
+import org.droidmate.analyzer.api.IApi
 import org.slf4j.LoggerFactory
 import java.util.*
 
-class DefaultExplorationStrategy(private val policy: ApiPolicy, private val evaluatorBuilder: EvaluationStrategyBuilder,
-                                 private val scenarioBuilder: ScenarioBuilder) : IExplorationStrategy {
+open class DefaultExplorationStrategy(protected val policy: ApiPolicy, protected val evaluatorBuilder: EvaluationStrategyBuilder,
+                                      protected val scenarioBuilder: ScenarioBuilder) : IExplorationStrategy {
 
-    private fun getValidScenarios(app: IAppUnderTest): List<IScenario> {
+    protected fun getValidScenarios(app: IAppUnderTest): List<IScenario> {
         return app
                 .getScenariosDepth(app.currExplDepth - 1)
                 .filter { p -> p.isValid }
                 .toList()
     }
 
-    private fun getEvaluationStrategy(app: IAppUnderTest): IEvaluationStrategy {
+    protected fun getEvaluationStrategy(app: IAppUnderTest): IEvaluationStrategy {
         val initialExpl = app.initialExpl
         return this.evaluatorBuilder.build(initialExpl)
+    }
+
+    protected fun generateSimpleScenarios(app: IAppUnderTest, apiList: List<IApi>): List<IScenario> {
+        val scenarios: MutableList<IScenario> = ArrayList()
+
+        apiList.forEach { api ->
+            val scenario = this.scenarioBuilder.build(app, listOf(api), app.currExplDepth,
+                    this.policy, this.getEvaluationStrategy(app))
+
+            // Somehow, the distinct operation of the stream class does not work and
+            // the java.net.URL->openConnection() appears multiple times
+            if (!scenarios.contains(scenario)) {
+                scenario.initialize()
+                scenarios.add(scenario)
+            }
+        }
+
+        return scenarios
     }
 
     private fun generateSimpleScenarios(app: IAppUnderTest): List<IScenario> {
@@ -28,37 +47,24 @@ class DefaultExplorationStrategy(private val policy: ApiPolicy, private val eval
         val scenarios = ArrayList<IScenario>()
 
         // Don't continue the experiment if the initial exploration is not valid
-        if (app.initialExpl.isValid) {
+        if (app.initialExpl!!.isValid) {
 
             // filter privacy sensitive APIs (unique)
-            val apiStream = app.initialMonitoredApiList
+            val apiList = app.initialMonitoredApiList
 
-            apiStream.forEach { api ->
-                val scenario = this.scenarioBuilder.build(app, listOf(api), app.currExplDepth,
-                        this.policy, this.getEvaluationStrategy(app))
-
-                // Somehow, the distinct operation of the stream class does not work and
-                // the java.net.URL->openConnection() appears multiple times
-                if (!scenarios.contains(scenario)) {
-                    scenario.initialize()
-                    scenarios.add(scenario)
-                }
-            }
+            return this.generateSimpleScenarios(app, apiList)
         }
 
         return scenarios
     }
 
-    private fun generateCompositeScenarios(app: IAppUnderTest): List<IScenario> {
-        logger.info("Generating composite scenarios")
-
+    protected fun generateCompositeScenarios(app: IAppUnderTest, previousScenarios: List<IScenario>, explDepth: Int): List<IScenario> {
         val scenarios = ArrayList<IScenario>()
-        val lastScenarios = this.getValidScenarios(app)
 
-        for (s1 in lastScenarios)
-            for (s2 in lastScenarios)
+        for (s1 in previousScenarios)
+            for (s2 in previousScenarios)
                 if (s1 != s2) {
-                    val newScenario = this.scenarioBuilder.build(s1, s2, app, app.currExplDepth, this.policy,
+                    val newScenario = this.scenarioBuilder.build(s1, s2, app, explDepth, this.policy,
                             this.getEvaluationStrategy(app))
 
                     if (!scenarios.contains(newScenario)) {
@@ -69,7 +75,15 @@ class DefaultExplorationStrategy(private val policy: ApiPolicy, private val eval
         return scenarios
     }
 
-    private fun generateInitialExpl(app: IAppUnderTest): List<IScenario> {
+    private fun generateCompositeScenarios(app: IAppUnderTest): List<IScenario> {
+        logger.info("Generating composite scenarios")
+
+        val previousScenarios = this.getValidScenarios(app)
+
+        return this.generateCompositeScenarios(app, previousScenarios, app.currExplDepth)
+    }
+
+    protected fun generateInitialExpl(app: IAppUnderTest): List<IScenario> {
         val s = this.scenarioBuilder.build(app, ArrayList(), app.currExplDepth, this.policy,
                 this.getEvaluationStrategy(app))
         s.initialize()
