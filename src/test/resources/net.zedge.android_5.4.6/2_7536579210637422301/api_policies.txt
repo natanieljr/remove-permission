@@ -1,0 +1,2 @@
+android.telephony.TelephonyManager->getDeviceId()		Mock
+java.net.Socket->connect(java.net.SocketAddress,int)		Mock

@@ -52,12 +52,17 @@ class ResourceManager {
         }
     }
 
-    internal fun initializeApiMapping(apiRestrictions : String = "api_restrictions.txt"): List<IApi> {
+    internal fun loadApiMapping(apiRestrictions : String = "api_restrictions.txt"): List<IApi> {
+        val apiRestrictionsFile = this.loadResourceFile(apiRestrictions)
+
+        return this.loadApiMapping(apiRestrictionsFile)
+    }
+
+    internal fun loadApiMapping(apiRestrictionsFile : Path): List<IApi> {
         val apiList = ArrayList<IApi>()
 
         try {
-            val file = this.loadResourceFile(apiRestrictions)
-            val restrictions = Files.readAllLines(file)
+            val restrictions = Files.readAllLines(apiRestrictionsFile)
 
             restrictions.forEach { p -> if (!p.startsWith("#")) apiList.add(this.processLine(p)) }
 
@@ -65,14 +70,14 @@ class ResourceManager {
             logger.error(e.message, e)
         }
 
-        assert(apiList.isNotEmpty())
+        //assert(apiList.isNotEmpty())
 
         return apiList
     }
 
     fun getRestriction(api: IApi): IApi? {
         if (ResourceManager.restrictableApis.isEmpty())
-            ResourceManager.restrictableApis = this.initializeApiMapping()
+            ResourceManager.restrictableApis = this.loadApiMapping()
 
         if (restrictableApis.contains(api))
             return restrictableApis[restrictableApis.indexOf(api)]

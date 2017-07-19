@@ -1,0 +1,2 @@
+android.telephony.TelephonyManager->getDeviceId()		Mock
+org.apache.http.impl.client.AbstractHttpClient->execute(org.apache.http.HttpHost,org.apache.http.HttpRequest,org.apache.http.protocol.HttpContext)		Mock

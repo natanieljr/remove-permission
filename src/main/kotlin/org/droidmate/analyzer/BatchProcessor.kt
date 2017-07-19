@@ -19,7 +19,7 @@ internal class BatchProcessor(private val cfg: Configuration) {
     }
 
     private fun initializeApkList() {
-        val dirPath = Paths.get(this.cfg.apkInputDir)
+        val dirPath = Paths.get(this.cfg.inputDir)
         try {
             val files = Files.list(dirPath)
             files.filter { p -> p.fileName.toString().contains(".apk") }

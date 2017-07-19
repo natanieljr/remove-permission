@@ -1,0 +1,4 @@
+android.telephony.TelephonyManager->getDeviceId()		Mock
+java.net.Socket->connect(java.net.SocketAddress,int)		Mock
+java.net.URL->openConnection()		Mock
+org.apache.http.impl.client.AbstractHttpClient->execute(org.apache.http.HttpHost,org.apache.http.HttpRequest,org.apache.http.protocol.HttpContext)		Mock

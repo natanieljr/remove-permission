@@ -1,0 +1,3 @@
+android.location.LocationManager->getLastKnownLocation(java.lang.String)		Mock
+android.telephony.TelephonyManager->getDeviceId()		Mock
+java.net.URL->openConnection()		Mock

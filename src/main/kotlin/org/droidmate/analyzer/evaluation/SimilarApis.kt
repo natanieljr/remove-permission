@@ -16,17 +16,32 @@ import org.droidmate.analyzer.exploration.IScenario
 
  * Ref: M. Pawlik and N. Augsten. Tree edit distance: Robust and memory- efficient. Information Systems 56. 2016.
  */
-open class SimilarApis internal constructor(initialExpl: IScenario, private val threshold: Double) : IEvaluationStrategy {
-    private val initialExplRes: IExplorationResult = initialExpl.result!!
+open class SimilarApis : IEvaluationStrategy {
+    val initialExplRes: IExplorationResult?
+    internal val threshold: Double
+    internal val sortApis : Boolean
 
-    init {
+    internal constructor(groundTruth: IScenario, threshold : Double){
+        this.initialExplRes = groundTruth.result
+        this.threshold = threshold
+        this.sortApis = false
+
+        assert(this.threshold > 0)
+        assert(this.initialExplRes != null)
+    }
+
+    internal constructor(groundTruth: IExplorationResult, threshold: Double, sortApis: Boolean = true){
+        this.initialExplRes = groundTruth
+        this.threshold = threshold
+        this.sortApis = sortApis
+
         assert(this.threshold > 0)
     }
 
     override fun getDissimilarity(result: IExplorationResult): Double {
         val parser = BracketStringInputParser()
-        val initialExplBracked = this.initialExplRes.toBracedNotation()
-        val scenarioBracked = result.toBracedNotation()
+        val initialExplBracked = if (sortApis) this.initialExplRes!!.toSortedBracedNotation() else this.initialExplRes!!.toBracedNotation()
+        val scenarioBracked = if (sortApis) result.toSortedBracedNotation() else result.toBracedNotation()
 
         val initialExplApis = parser.fromString(initialExplBracked)
         val scenarioApis = parser.fromString(scenarioBracked)
@@ -38,7 +53,7 @@ open class SimilarApis internal constructor(initialExpl: IScenario, private val 
     }
 
     override fun isValid(result: IExplorationResult): Boolean {
-        val nrApisInitialExpl = this.initialExplRes.apiList.size
+        val nrApisInitialExpl = this.initialExplRes!!.apiList.size
         val nrApisScenario = result.apiList.size
 
         val max = Math.max(nrApisInitialExpl, nrApisScenario).toDouble()

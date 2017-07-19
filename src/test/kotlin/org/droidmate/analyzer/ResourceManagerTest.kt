@@ -16,7 +16,7 @@ import org.junit.runners.MethodSorters
 class ResourceManagerTest {
     @Test
     fun InitializeFilledListTest(){
-        val apiListFilled = ResourceManager().initializeApiMapping("test_list_filled.txt")
+        val apiListFilled = ResourceManager().loadApiMapping("test_list_filled.txt")
 
         assertTrue(apiListFilled.size == 3)
         assertTrue(apiListFilled[0].toString() == "android.hardware.Camera->open(int)\t")
@@ -27,7 +27,7 @@ class ResourceManagerTest {
     @Test
     fun InitializeEmptyListFilledTest(){
         try {
-            ResourceManager().initializeApiMapping("test_list_empty.txt")
+            ResourceManager().loadApiMapping("test_list_empty.txt")
             Assert.fail()
         }
         catch(e : AssertionError){

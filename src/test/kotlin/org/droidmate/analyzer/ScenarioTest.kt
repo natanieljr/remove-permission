@@ -53,7 +53,7 @@ class ScenarioTest{
 
     @Test
     fun BuildScenarioTest(){
-        val restrictedApis = ResourceManager().initializeApiMapping("test_list_filled.txt")
+        val restrictedApis = ResourceManager().loadApiMapping("test_list_filled.txt")
         try{
             val scenario0Api = createScenario(0, ArrayList())
             val scenario0Data = Files.readAllLines(scenario0Api.cfgFile)
@@ -79,7 +79,7 @@ class ScenarioTest{
 
     @Test
     fun MergeScenarioTest(){
-        val restrictedApis = ResourceManager().initializeApiMapping("test_list_filled.txt")
+        val restrictedApis = ResourceManager().loadApiMapping("test_list_filled.txt")
         val scenario1Api = createScenario(1, restrictedApis.subList(0,1))
         val scenario1Api2 = createScenario(1, restrictedApis.subList(1,2))
 

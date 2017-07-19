@@ -3,11 +3,13 @@ package org.droidmate.analyzer.exploration
 import org.droidmate.analyzer.Constants
 import org.droidmate.analyzer.api.IApi
 import java.nio.file.Path
+import java.time.Duration
 
 /**
  * Exploration result for error state
  */
 class ErrorExplorationResult : IExplorationResult{
+
     override val explDir: Path
         get() = Constants.EMPTY_PATH
 
@@ -24,6 +26,17 @@ class ErrorExplorationResult : IExplorationResult{
     override fun toBracedNotation(): String {
         return "{}"
     }
+
+    override fun toSortedBracedNotation(): String {
+        return "{}"
+    }
+
+    override fun getPolicies(): List<IApi> {
+        return ArrayList()
+    }
+
+    override val duration: Duration
+        get() = Duration.ZERO
 
     override val nrWidgetsExplored: Int
         get() = 0

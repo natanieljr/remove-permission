@@ -1,0 +1,2 @@
+android.location.LocationManager->getLastKnownLocation(java.lang.String)		Mock
+java.net.URL->openConnection()		Mock

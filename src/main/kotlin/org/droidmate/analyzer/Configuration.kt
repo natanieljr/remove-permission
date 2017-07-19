@@ -16,7 +16,7 @@ import java.nio.file.Paths
 class Configuration {
     // Command line parameters
     @Parameter(names = arrayOf("-input"), description = "Path to the input directory, default apks")
-    internal var apkInputDir = "apks"
+    internal var inputDir = "apks"
 
     @Parameter(names = arrayOf("-device"), description = "Device index, default 0")
     var deviceIdx = 0
@@ -38,6 +38,10 @@ class Configuration {
 
     internal var evalStrategyBuilder: EvaluationStrategyBuilder = EvaluationStrategyBuilder(this.evaluationType,
             this.evaluationThreshold)
+
+    internal fun getInputDir(): Path{
+        return Paths.get(this.inputDir)
+    }
 
     internal fun getWorkDir(deviceSN: String): Path {
         val deviceSNDir = deviceSN.replace(":", "-")
