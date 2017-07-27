@@ -52,7 +52,7 @@ class KMeans constructor(val DEBUG : Boolean = false): Serializable{
 
             val distArray = internalCentroidList.map { p -> Point.distance(p, centroid) }.min() ?: Double.MAX_VALUE
 
-            if ((distArray > this.THRESHOLD * 5) || (attempt++ > 50)) {
+            if ((distArray > this.THRESHOLD * 5) || (attempt++ > 10)) {
                 val cluster = Cluster(clusters.size, DEBUG)
                 cluster.centroid = centroid
                 clusters.add(cluster)

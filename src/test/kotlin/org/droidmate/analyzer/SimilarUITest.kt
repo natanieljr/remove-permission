@@ -3,10 +3,12 @@ package org.droidmate.analyzer
 import at.unisalzburg.apted.distance.APTED
 import at.unisalzburg.apted.node.StringNodeData
 import at.unisalzburg.apted.parser.BracketStringInputParser
+import com.konradjamrozik.isDirectory
 import org.droidmate.analyzer.evaluation.CustomCostModel
 import org.droidmate.analyzer.exploration.ExplorationResult
 import org.droidmate.device.datatypes.UiautomatorWindowDump
 import org.droidmate.device.datatypes.Widget
+import org.droidmate.errors.ForbiddenOperationError
 import org.droidmate.exploration.actions.RunnableExplorationActionWithResult
 import org.junit.Assert
 import org.junit.FixMethodOrder
@@ -231,21 +233,26 @@ class SimilarUITest {
         clusters.forEach { c -> map[c.id] = ArrayList() }
 
         actions.forEachIndexed { idx, a ->
-            if (a.result.guiSnapshot.guiState.belongsToApp(packageName)) {
-                val point = Point(idx, a.result.guiSnapshot.guiState.widgets)
+            try {
+                if (a.result.guiSnapshot.guiState.belongsToApp(packageName)) {
+                    val point = Point(idx, a.result.guiSnapshot.guiState.widgets)
 
-                val distanceArray = clusters
-                        .sortedBy { p -> p.id }
-                        .asSequence()
-                        .map { c -> Point.distance(point, c.centroid!!) }
-                val minDist = distanceArray.min() ?: Double.MAX_VALUE
+                    val distanceArray = clusters
+                            .sortedBy { p -> p.id }
+                            .asSequence()
+                            .map { c -> Point.distance(point, c.centroid!!) }
+                    val minDist = distanceArray.min() ?: Double.MAX_VALUE
 
-                if (minDist < THRESHOLD) {
-                    val bestCluster = clusters[distanceArray.indexOf(minDist)]
+                    if (minDist < THRESHOLD) {
+                        val bestCluster = clusters[distanceArray.indexOf(minDist)]
 
-                    map[bestCluster.id]!!.add(point)
-                } else
-                    remaining.add(point)
+                        map[bestCluster.id]!!.add(point)
+                    } else
+                        remaining.add(point)
+                }
+            }
+            catch (e: ForbiddenOperationError){
+                println("ERROR: " + e.message)
             }
         }
 
@@ -277,28 +284,58 @@ class SimilarUITest {
     }
 
     @Test
-    fun clusterScreens(){
-        val initialExplDir = Paths.get("data", "codeadore.textgram_3.0.10/0_5215842561409541734")
+    fun clusterScreens() {
+        //val initialExplDir = Paths.get("data", "codeadore.textgram_3.0.10", "0_5215842561409541734")
+        val baseDir = Paths.get("data3")
+        val THRESHOLD = 30.0
+
+        Files.list(baseDir).forEach { appDir ->
+
+            val initialExplDirCandidates = Files.list(appDir).filter { p -> p.fileName.toString().startsWith("0_") }.findFirst()
+
+            if (initialExplDirCandidates.isPresent) {
+                val initialExplDir = initialExplDirCandidates.get()
+
+                Files.list(initialExplDir.parent)
+                        .filter { p -> p.fileName != initialExplDir.fileName }
+                        .forEach { p ->
+                            if (p.isDirectory) {
+                                val scenarioDir = p
+                                val res = this.clusterScreens(initialExplDir, scenarioDir, THRESHOLD)
+
+                                val report = scenarioDir.resolve("experiment_report_$THRESHOLD.txt")
+                                try {
+                                    Files.write(report, res.toByteArray())
+                                } catch(e: IOException) {
+                                    println(e.message)
+                                }
+                            }
+                        }
+            }
+        }
+    }
+
+    internal fun clusterScreens(initialExplDir: Path, scenarioDir: Path, THRESHOLD: Double): String{
         val initialExpl = ExplorationResult(initialExplDir, report = true)
 
         val points = this.loadActions(initialExpl)
 
-        val THRESHOLD = 20.0
-
-        val clusteredScreens = this.cluster(points, THRESHOLD, initialExplDir.resolve("clusteredData.dat"))
+        val clusteredScreens = this.cluster(points, THRESHOLD, initialExplDir.resolve("clusteredData_$THRESHOLD.dat"))
         val clusteredWidgets = this.clusterWidgets(clusteredScreens)
 
-        val scenarioDir = Paths.get("data", "codeadore.textgram_3.0.10/1_473056737438429882")
         val scenario = ExplorationResult(scenarioDir, report = true)
 
         val scenarioMapping = this.mapScreensToClusters(scenario.internalResult.first().packageName,
                 scenario.internalResult.first().actRess, clusteredScreens, THRESHOLD,
-                scenarioDir.resolve("clusteredData.dat"))
+                scenarioDir.resolve("clusteredData_$THRESHOLD.dat"))
 
         val finalMapping = this.clusterWidgets(scenarioMapping)
 
-        println("===========")
-        println("Final result")
+        val sbRes = StringBuilder()
+        sbRes.append("===========\n")
+        sbRes.append("Final result\n")
+
+        var totalLoss = 0.0
 
         finalMapping.forEach { idx, widgets ->
             val nrOrigWidgets : Int
@@ -327,7 +364,13 @@ class SimilarUITest {
             else
                 status = " "
 
-            println("$status Screen $idx\t IEX size: $nrOrigWidgets\t SCN size: ${widgets.size}\t IEX only: ${widgetsOnlyInitial.size}\t SCN only: ${widgetsOnlyNew.size}\t Loss: ${widgetsOnlyInitial.size / maxOf(nrOrigWidgets, 1)}")
+            sbRes.append("$status Screen $idx\t IEX size: $nrOrigWidgets\t SCN size: ${widgets.size}\t IEX only: ${widgetsOnlyInitial.size}\t SCN only: ${widgetsOnlyNew.size}\t Loss: ${widgetsOnlyInitial.size.toDouble() / maxOf(nrOrigWidgets, 1).toDouble()}\n")
+
+            totalLoss += widgetsOnlyInitial.size.toDouble() / maxOf(nrOrigWidgets, 1).toDouble()
         }
+
+        sbRes.append("* TOTAL LOSS: ${totalLoss / finalMapping.size}\n")
+
+        return sbRes.toString()
     }
 }
