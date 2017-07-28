@@ -10,7 +10,6 @@ import org.droidmate.device.datatypes.UiautomatorWindowDump
 import org.droidmate.device.datatypes.Widget
 import org.droidmate.errors.ForbiddenOperationError
 import org.droidmate.exploration.actions.RunnableExplorationActionWithResult
-import org.junit.Assert
 import org.junit.FixMethodOrder
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -29,6 +28,63 @@ import java.util.ArrayList
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 @RunWith(JUnit4::class)
 class SimilarUITest {
+    internal class Screen(val status: String, val idx: Int, val nrOrigWidgets: Int, val nrWidgets: Int,
+                          val nrMissingWidgets: Int, val nrNewWidgets: Int, val loss: Double){
+        override fun toString(): String{
+            return "$status Screen $idx\t IEX size: $nrOrigWidgets\t SCN size: $nrWidgets\t IEX only: $nrMissingWidgets\t SCN only: $nrNewWidgets\t Loss: $loss\r\n"
+        }
+    }
+    internal class Result(val scenarioDir: Path, val screens : List<Screen>){
+
+        internal fun calcResult(): Double{
+            var totalLoss = 0.0
+            var totalSize = 0.0
+
+            this.screens.forEach { p ->
+                totalLoss += p.nrMissingWidgets
+                totalSize += p.nrOrigWidgets
+            }
+
+            return totalLoss / totalSize
+        }
+
+        internal fun getPolicies(): String{
+            try{
+                val data = Files.readAllLines(this.scenarioDir.resolve("api_policies.txt"))
+
+                val sb = StringBuilder()
+                data.forEach { p ->
+                    if (p.contains("\t")){
+                        sb.append(p.split("\t").get(0) + "\r\n")
+                    }
+                }
+
+                return sb.toString()
+            }
+            catch(e: IOException){
+                return ""
+            }
+        }
+
+        override fun toString(): String {
+            val sb = StringBuilder()
+
+            val app = this.scenarioDir.parent.fileName.toString()
+            val scenario = this.scenarioDir.fileName.toString()
+            val policies = this.getPolicies()
+
+            sb.append("App: $app\r\n")
+            sb.append("Scenario: $scenario\r\n")
+            sb.append("Policies: $policies\r\n")
+
+            this.screens.forEach { p -> sb.append(p.toString()) }
+
+            sb.append("* TOTAL: ${this.calcResult()}\r\n\r\n")
+
+            return sb.toString()
+        }
+    }
+
     internal class Node(val value : Widget, val children : MutableList<Node>){
         fun Widget.toFmtString(): String{
             val identifier : String
@@ -108,7 +164,8 @@ class SimilarUITest {
 
     @Test
     fun calcDissimilarityFile(){
-        val ui1File = Paths.get("/Users/nataniel/Downloads/dump1.xml")
+        assert(true)
+        /*val ui1File = Paths.get("/Users/nataniel/Downloads/dump1.xml")
         val ui2File = Paths.get("/Users/nataniel/Downloads/dump2.xml")
         try {
             val ui1 = String(Files.readAllBytes(ui1File))
@@ -132,7 +189,7 @@ class SimilarUITest {
         }
         catch (e : IOException){
             Assert.fail()
-        }
+        }*/
     }
 
     internal fun loadActions(explorationResult: ExplorationResult): List<Point> {
@@ -283,13 +340,16 @@ class SimilarUITest {
         return map
     }
 
-    @Test
+    //@Test
     fun clusterScreens() {
         //val initialExplDir = Paths.get("data", "codeadore.textgram_3.0.10", "0_5215842561409541734")
-        val baseDir = Paths.get("data3")
+        val baseDir = Paths.get("C:\\Users\\natan_000\\Downloads\\RemovePermissions\\data_full")
+        //val baseDir = Paths.get("data3")
         val THRESHOLD = 30.0
 
         Files.list(baseDir).forEach { appDir ->
+
+            val appResults : MutableList<Result> = ArrayList()
 
             val initialExplDirCandidates = Files.list(appDir).filter { p -> p.fileName.toString().startsWith("0_") }.findFirst()
 
@@ -301,7 +361,12 @@ class SimilarUITest {
                         .forEach { p ->
                             if (p.isDirectory) {
                                 val scenarioDir = p
-                                val res = this.clusterScreens(initialExplDir, scenarioDir, THRESHOLD)
+                                val resPair = this.clusterScreens(initialExplDir, scenarioDir, THRESHOLD)
+
+                                val objRes = resPair.first
+                                appResults.add(objRes)
+
+                                val res = resPair.second
 
                                 val report = scenarioDir.resolve("experiment_report_$THRESHOLD.txt")
                                 try {
@@ -311,11 +376,26 @@ class SimilarUITest {
                                 }
                             }
                         }
+
+                this.saveAppResults(appDir, THRESHOLD, appResults)
             }
         }
     }
 
-    internal fun clusterScreens(initialExplDir: Path, scenarioDir: Path, THRESHOLD: Double): String{
+    internal fun saveAppResults(appDir : Path, THRESHOLD: Double, appResults : List<Result>){
+        val sb = StringBuilder()
+
+        appResults.forEach { p -> sb.append(p.toString() + "\r\n") }
+
+        val reportFile = appDir.resolve("complete_report_$THRESHOLD.txt")
+        try {
+            Files.write(reportFile, sb.toString().toByteArray())
+        } catch(e: IOException) {
+            println(e.message)
+        }
+    }
+
+    internal fun clusterScreens(initialExplDir: Path, scenarioDir: Path, THRESHOLD: Double): Pair<Result, String>{
         val initialExpl = ExplorationResult(initialExplDir, report = true)
 
         val points = this.loadActions(initialExpl)
@@ -332,10 +412,13 @@ class SimilarUITest {
         val finalMapping = this.clusterWidgets(scenarioMapping)
 
         val sbRes = StringBuilder()
-        sbRes.append("===========\n")
-        sbRes.append("Final result\n")
+        sbRes.append("===========\r\n")
+        sbRes.append("Final result\r\n")
 
         var totalLoss = 0.0
+        var totalSize = 0.0
+
+        val screens : MutableList<Screen> = ArrayList()
 
         finalMapping.forEach { idx, widgets ->
             val nrOrigWidgets : Int
@@ -345,9 +428,9 @@ class SimilarUITest {
             if (clusteredWidgets.containsKey(idx)) {
                 nrOrigWidgets = clusteredWidgets[idx]!!.size
                 widgetsOnlyInitial = clusteredWidgets[idx]!!
-                        .filterNot { w -> widgets.contains(w) }
+                  .filterNot { w -> widgets.contains(w) }
                 widgetsOnlyNew = widgets
-                        .filterNot { w -> clusteredWidgets[idx]!!.contains(w) }
+                  .filterNot { w -> clusteredWidgets[idx]!!.contains(w) }
             }
             else {
                 nrOrigWidgets = 0
@@ -364,13 +447,18 @@ class SimilarUITest {
             else
                 status = " "
 
-            sbRes.append("$status Screen $idx\t IEX size: $nrOrigWidgets\t SCN size: ${widgets.size}\t IEX only: ${widgetsOnlyInitial.size}\t SCN only: ${widgetsOnlyNew.size}\t Loss: ${widgetsOnlyInitial.size.toDouble() / maxOf(nrOrigWidgets, 1).toDouble()}\n")
+            sbRes.append("$status Screen $idx\t IEX size: $nrOrigWidgets\t SCN size: ${widgets.size}\t IEX only: ${widgetsOnlyInitial.size}\t SCN only: ${widgetsOnlyNew.size}\t Loss: ${widgetsOnlyInitial.size.toDouble() / maxOf(nrOrigWidgets, 1).toDouble()}\r\n")
 
-            totalLoss += widgetsOnlyInitial.size.toDouble() / maxOf(nrOrigWidgets, 1).toDouble()
+            screens.add(Screen(status, idx, nrOrigWidgets, widgets.size, widgetsOnlyInitial.size, widgetsOnlyNew.size,
+              widgetsOnlyInitial.size.toDouble() / maxOf(nrOrigWidgets, 1).toDouble()))
+
+            totalLoss += widgetsOnlyInitial.size.toDouble()
+            totalSize += nrOrigWidgets.toDouble()
         }
 
-        sbRes.append("* TOTAL LOSS: ${totalLoss / finalMapping.size}\n")
+        sbRes.append("* TOTAL LOSS: ${totalLoss / totalSize}\r\n")
 
-        return sbRes.toString()
+        val res = Result(scenarioDir, screens)
+        return Pair(res, sbRes.toString())
     }
 }
