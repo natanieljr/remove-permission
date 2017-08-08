@@ -343,8 +343,8 @@ class SimilarUITest {
     //@Test
     fun clusterScreens() {
         //val initialExplDir = Paths.get("data", "codeadore.textgram_3.0.10", "0_5215842561409541734")
-        val baseDir = Paths.get("C:\\Users\\natan_000\\Downloads\\RemovePermissions\\data_full")
-        //val baseDir = Paths.get("data3")
+        //val baseDir = Paths.get("C:\\Users\\natan_000\\Downloads\\RemovePermissions\\data_full")
+        val baseDir = Paths.get("data")
         val THRESHOLD = 30.0
 
         Files.list(baseDir).forEach { appDir ->

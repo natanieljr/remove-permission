@@ -11,12 +11,12 @@ import java.util.*
  */
 class ScenarioBuilder {
 
-    internal fun build(app: IAppUnderTest, restrictedApis: List<IApi>, explDepth: Int, policy: ApiPolicy,
+    fun build(app: IAppUnderTest, restrictedApis: List<IApi>, explDepth: Int, policy: ApiPolicy,
                        evaluator: IEvaluationStrategy): IScenario {
         return Scenario(app, restrictedApis, explDepth, policy, evaluator)
     }
 
-    internal fun build(s1: IScenario, s2: IScenario, app: IAppUnderTest, explDepth: Int, policy: ApiPolicy,
+    fun build(s1: IScenario, s2: IScenario, app: IAppUnderTest, explDepth: Int, policy: ApiPolicy,
                        evaluator: IEvaluationStrategy): IScenario {
         val restrictedApis = ArrayList<IApi>()
         val scenario1 = s1 as Scenario

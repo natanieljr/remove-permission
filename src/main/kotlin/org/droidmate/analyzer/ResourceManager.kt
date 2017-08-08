@@ -52,7 +52,7 @@ class ResourceManager {
         }
     }
 
-    internal fun loadApiMapping(apiRestrictions : String = "api_restrictions.txt"): List<IApi> {
+    fun loadApiMapping(apiRestrictions : String): List<IApi> {
         val apiRestrictionsFile = this.loadResourceFile(apiRestrictions)
 
         return this.loadApiMapping(apiRestrictionsFile)
@@ -77,7 +77,7 @@ class ResourceManager {
 
     fun getRestriction(api: IApi): IApi? {
         if (ResourceManager.restrictableApis.isEmpty())
-            ResourceManager.restrictableApis = this.loadApiMapping()
+            ResourceManager.restrictableApis = this.loadApiMapping("api_restrictions.txt")
 
         if (restrictableApis.contains(api))
             return restrictableApis[restrictableApis.indexOf(api)]
