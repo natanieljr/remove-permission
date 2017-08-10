@@ -8,8 +8,9 @@ import com.konradjamrozik.isDirectory
 import org.droidmate.analyzer.exploration.ExplorationResult
 import org.droidmate.analyzer.exploration.IExplorationResult
 import org.droidmate.apis.ApiLogcatMessage
+import org.droidmate.exploration.actions.ResetAppExplorationAction
+import org.droidmate.exploration.actions.WidgetExplorationAction
 import org.droidmate.report.EventApiPair
-import org.droidmate.report.uniqueEventApiPairs
 import org.junit.FixMethodOrder
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -101,9 +102,36 @@ class SimilarTraceTest{
     }
 
     internal fun getUniqueEventApiPairs(expl: ExplorationResult, sorted: Boolean): List<String>{
-        val data = expl.internalResult.first().actions
-                .map{ p -> "${p.base.toShortString()}\tDUMMY" }
-                .distinct()
+        var res : MutableList<String> = ArrayList()
+        val actionList = expl.internalResult.first().actions
+
+        for (i in 0..actionList.size - 1) {
+            val action = actionList.get(i)
+            if (action.base is WidgetExplorationAction) {
+                if (i < (actionList.size - 2)){
+                    val nextAction = actionList.get(i + 1)
+
+                    if (nextAction.base is ResetAppExplorationAction)
+                        continue
+                }
+
+                val widget = (action.base as WidgetExplorationAction).selectedWidget
+                var desc = "${widget.packageName};${widget.className};"
+
+                if (widget.resourceId.isNotEmpty())
+                    desc += "${widget.resourceId};"
+
+                if (widget.text.isNotEmpty())
+                    desc += "${widget.text};"
+
+                if (widget.resourceId.isEmpty() && widget.text.isEmpty())
+                    desc += "${widget.boundsString};"
+
+                res.add(desc + "\tDUMMY")
+            } else {
+                res.add(action.base.toShortString() + "	DUMMY")
+            }
+        }
 
         /*val data = expl.internalResult.first().uniqueEventApiPairs
                 .filter { p ->
@@ -114,11 +142,13 @@ class SimilarTraceTest{
                 }
                 .map { p -> toBracedNotation(p) }*/
 
+        res = res.distinct().toMutableList()
+
         if (sorted)
-            return data
+            return res
                     .sorted()
 
-        return data
+        return res
     }
 
     internal fun compareApiList(expl1: IExplorationResult, expl2: IExplorationResult,
@@ -294,29 +324,36 @@ class SimilarTraceTest{
         saveTraceWidgetCoverage(1, expl2.explDir, expl1ApisWidget)
         saveTraceWidgetCoverage(2, expl2.explDir, expl2ApisWidget)
 
+        val widgetDiff = expl1ApisWidget
+                .filter { p -> !expl2ApisWidget.containsKey(p.key) }
+
+        saveTraceWidgetCoverage(-1, expl2.explDir, widgetDiff)
+
         return Triple(expl1ApisWidget.size, expl2ApisWidget.size, avg)
     }
 
-    internal fun saveTraceWidgetCoverage(explNr: Int, explDir: Path, widgets: HashMap<String, MutableList<String>>){
-        val fileName = "widget_trace_$explNr.txt"
-        val traceFile = explDir.resolve(fileName)
+    internal fun saveTraceWidgetCoverage(explNr: Int, explDir: Path, widgets: Map<String, MutableList<String>>){
+        if (explNr > 0) {
+            val fileName = "widget_trace_$explNr.txt"
+            val traceFile = explDir.resolve(fileName)
 
-        val sb = StringBuilder()
-        widgets.forEach { widget, diff ->
-            diff.forEach { api -> sb.append("$widget\t$api \r\n") }
-        }
+            val sb = StringBuilder()
+            widgets.forEach { widget, diff ->
+                diff.forEach { api -> sb.append("$widget\t$api \r\n") }
+            }
 
-        try {
-            Files.write(traceFile, sb.toString().toByteArray())
-        } catch(e: IOException) {
-            println(e.message)
+            try {
+                Files.write(traceFile, sb.toString().toByteArray())
+            } catch(e: IOException) {
+                println(e.message)
+            }
         }
 
         saveWidgetListListWidgetCoverage(explNr, explDir, widgets)
     }
 
-    internal fun saveWidgetListListWidgetCoverage(explNr: Int, explDir: Path, widgets: HashMap<String, MutableList<String>>){
-        val fileName = "widget_list$explNr.txt"
+    internal fun saveWidgetListListWidgetCoverage(explNr: Int, explDir: Path, widgets: Map<String, MutableList<String>>){
+        val fileName = if (explNr > 0) "widget_list$explNr.txt" else "widget_list_diff.txt"
         val traceFile = explDir.resolve(fileName)
 
         val sb = StringBuilder()
@@ -333,8 +370,8 @@ class SimilarTraceTest{
 
     @Test
     fun generateReports(){
-        val baseDir = Paths.get("data")
-        //val baseDir = Paths.get("/Users/nataniel.borges/Documents/bak/data_full")
+        //val baseDir = Paths.get("data")
+        val baseDir = Paths.get("/Users/nataniel.borges/Documents/bak/data_full")
 
         Files.list(baseDir)
                 .filter{ appDir -> !appDir.fileName.toString().startsWith("_") }
