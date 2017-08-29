@@ -116,6 +116,11 @@ class SimilarTraceTest{
                 }
 
                 val widget = (action.base as WidgetExplorationAction).selectedWidget
+
+                if (widget.packageName == "com.google.android.inputmethod.latin"){
+                    continue
+                }
+
                 var desc = "${widget.packageName};${widget.className};"
 
                 if (widget.resourceId.isNotEmpty())
@@ -371,7 +376,7 @@ class SimilarTraceTest{
     @Test
     fun generateReports(){
         //val baseDir = Paths.get("data")
-        val baseDir = Paths.get("/Users/nataniel.borges/Documents/bak/data_full")
+        val baseDir = Paths.get("bak/data_full")
 
         Files.list(baseDir)
                 .filter{ appDir -> !appDir.fileName.toString().startsWith("_") }
