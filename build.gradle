@@ -1,5 +1,5 @@
 buildscript {
-    ext.kotlin_version = '1.1.2-5'
+    ext.kotlin_version = '1.1.4-2'
     repositories {
         mavenCentral()
     }
@@ -9,10 +9,10 @@ buildscript {
 }
 
 plugins {
-    id "org.jetbrains.kotlin.jvm" version "1.1.2"
+    id "org.jetbrains.kotlin.jvm" version "1.1.4-2"
 }
 
-ext.kotlin_version = '1.1.1'
+ext.kotlin_version = '1.1.4-2'
 
 group 'org.droidmate.analyzer'
 version '0.1'
